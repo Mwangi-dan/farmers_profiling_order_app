@@ -1,0 +1,30 @@
+{% extends "auth_base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h2 class="text-center">Login</h2>
+            <form method="POST" action="{{ url_for('auth.login') }}">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.telephone.label(class="form-label") }}
+                    {{ form.telephone(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control") }}
+                </div>
+                <div class="mb-3 form-check">
+                    {{ form.remember(class="form-check-input") }}
+                    {{ form.remember.label(class="form-check-label") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </div>
+            </form>
+            <p class="text-center">Don't have an account? <a href="{{ url_for('auth.signup') }}">Sign up here</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

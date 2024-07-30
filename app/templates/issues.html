@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 class="mt-4">Issues</h2>
+<ul class="list-group" id="issues-list">
+    {% for issue in issues %}
+    <li class="list-group-item bg-dark text-light" data-issue-id="{{ issue.id }}">
+        {{ issue.issue_text }} - <span class="badge bg-secondary">{{ issue.status }}</span>
+        <button class="btn btn-sm btn-light resolve-button">Mark as Resolved</button>
+    </li>
+    {% endfor %}
+</ul>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const resolveButtons = document.querySelectorAll('.resolve-button');
+
+        resolveButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const issueElement = this.closest('li');
+                const issueId = issueElement.getAttribute('data-issue-id');
+                updateStatus(issueId, 'Resolved');
+            });
+        });
+
+        function updateStatus(issueId, newStatus) {
+            fetch(`/admin/issues/${issueId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`  // Ensure the access token is handled properly
+                },
+                body: JSON.stringify({ status: newStatus })
+            }).then(response => {
+                if (response.ok) {
+                    location.reload();
+                } else {
+                    response.json().then(data => {
+                        alert('Failed to update status: ' + data.error);
+                    });
+                }
+            }).catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating the status.');
+            });
+        }
+    });
+</script>
+{% endblock %}

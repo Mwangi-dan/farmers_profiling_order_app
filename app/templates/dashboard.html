@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-2xl font-bold mb-4">Export Reports</h2>
+    <div class="space-x-2">
+        <a href="{{ url_for('admin.export_users_csv') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Users as CSV</a>
+        <a href="{{ url_for('admin.export_issues_csv') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Issues as CSV</a>
+        <a href="{{ url_for('admin.export_orders_csv') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Orders as CSV</a>
+        <a href="{{ url_for('admin.export_users_pdf') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Users as PDF</a>
+        <a href="{{ url_for('admin.export_issues_pdf') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Issues as PDF</a>
+        <a href="{{ url_for('admin.export_orders_pdf') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Orders as PDF</a>
+    </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-xl font-bold mb-4">Issues</h3>
+        <ul class="list-disc pl-6 space-y-2">
+            {% for issue in issues %}
+            <li class="bg-gray-800 text-white p-4 rounded-lg flex justify-between items-center">
+                <span>{{ issue.issue_text }} - {{ issue.status }}</span>
+                <span class="bg-gray-600 text-white px-2 py-1 rounded">{{ issue.created_at.strftime('%Y-%m-%d') }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-xl font-bold mb-4">Orders</h3>
+        <ul class="list-disc pl-6 space-y-2">
+            {% for order in orders %}
+            <li class="bg-gray-800 text-white p-4 rounded-lg flex justify-between items-center">
+                <span>{{ order.product_name }} - {{ order.status }}</span>
+                <span class="bg-gray-600 text-white px-2 py-1 rounded">{{ order.created_at.strftime('%Y-%m-%d') }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</div>
+
+<!-- <script>
+    var userLabels = JSON.parse('{{ user_labels | tojson | safe }}');
+    var userCounts = JSON.parse('{{ user_counts | tojson | safe }}')';
+    var issueLabels = {{ issue_labels | tojson | safe }};
+    var issueCounts = {{ issue_counts | tojson | safe }};
+    var orderLabels = {{ order_labels | tojson | safe }};
+    var orderCounts = {{ order_counts | tojson | safe }};
+</script> -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %}</title>
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen antialiased leading-none font-sans">
+    <div class="flex h-full" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-gray-800 text-white w-64 space-y-6 py-7 px-2 flex flex-col justify-between min-h-screen">
+            <div class="sidebar-heading text-center text-xl font-bold">Admin Portal</div>
+            <nav class="space-y-1">
+                <a href="{{ url_for('admin.dashboard') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-600">Dashboard</a>
+                <a href="{{ url_for('admin.get_issues') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-600">Issues</a>
+                <a href="{{ url_for('admin.get_orders') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-600">Orders</a>
+                <a href="{{ url_for('auth.logout') }}" class="block py-2.5 px-4 rounded transition duration-200 hover:bg-gray-600">Logout</a>
+            </nav>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="flex-grow bg-gray-100 p-6">
+            <nav class="bg-gray-800 text-white p-4 rounded-lg mb-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl">Dashboard</h1>
+                    <button id="menu-toggle" class="bg-gray-600 px-3 py-2 rounded">Toggle Menu</button>
+                </div>
+            </nav>
+
+            <div class="container mx-auto">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+        <!-- /#page-content-wrapper -->
+    </div>
+    <!-- /#wrapper -->
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script>
+        document.getElementById("menu-toggle").onclick = function() {
+            document.getElementById("wrapper").classList.toggle("toggled");
+        };
+    </script>
+</body>
+</html>
