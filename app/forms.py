@@ -22,6 +22,7 @@ class RegistrationForm(FlaskForm):
         user = User.query.filter_by(telephone=telephone.data).first()
         if user:
             raise ValidationError('That telephone is already registered.')
+        
 
 class LoginForm(FlaskForm):
     telephone = StringField('Telephone', validators=[DataRequired(), Length(min=10, max=15)])
