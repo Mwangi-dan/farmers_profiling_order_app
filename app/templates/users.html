@@ -1,19 +1,125 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="mt-4">Users</h2>
-<a href="{{ url_for('admin.add_user') }}" class="btn btn-primary mb-3">Add User</a>
-<ul class="list-group">
-    {% for user in users %}
-    <li class="list-group-item bg-dark text-light d-flex justify-content-between align-items-center">
-        <span>{{ user.name }}</span>
-        <div>
-            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-sm btn-light">Edit</a>
-            <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="post" class="d-inline">
-                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-            </form>
+<main id="main" class="main">
+  <div class="pagetitle">
+    <h1>Issues</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard' )}}">Home</a></li>
+        <li class="breadcrumb-item active">Issues</li>
+      </ol>
+    </nav>
+  </div><!-- End Page Title -->
+  <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Users</h5>
+        <p>View all users registered in the System</p>
+
+        <!-- Table with stripped rows -->
+        <table class="table datatable">
+          <thead>
+            <tr>
+              <th><b>Name</b></th>
+              <th>Gender</th>
+              <th>Telephone</th>
+              <th>Location</th>
+              <th data-type="date" data-format="YYYY/DD/MM">Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td><a href="{{ url_for('admin.view_user', user_id=user.id) }}">{{ user.name }}</a></td>
+              <td>{{ user.gender }}</td>
+              <td>{{ user.telephone }}</td>
+              <td>{{ user.location }}</td>
+              <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+              <td>
+                <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="{{ user.id }}" data-name="{{ user.name }}" data-gender="{{ user.gender }}" data-telephone="{{ user.telephone }}" data-location="{{ user.location }}">Edit User</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <!-- End Table with stripped rows -->
+
+      </div>
+    </div>
+
+  </div>
+
+
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
+  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/> 
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form>
+        <div class="modal-header">
+          <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-    </li>
-    {% endfor %}
-</ul>
+        <div class="modal-body">
+          <input type="hidden" id="edit-user-id" name="user_id">
+          <div class="mb-3">
+            <label for="edit-name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="edit-name" name="name" required>
+          </div>
+          <div class="mb-3">
+            <label for="edit-gender" class="form-label">Gender</label>
+            <select class="form-control" id="edit-gender" name="gender" required>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="edit-telephone" class="form-label">Telephone</label>
+            <input type="text" class="form-control" id="edit-telephone" name="telephone" required>
+          </div>
+          <div class="mb-3">
+            <label for="edit-location" class="form-label">Location</label>
+            <input type="text" class="form-control" id="edit-location" name="location" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</main>
+
+
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var editUserModal = document.getElementById('editUserModal');
+    editUserModal.addEventListener('show.bs.modal', function(event) {
+      var button = event.relatedTarget;
+      var userId = button.getAttribute('data-id');
+      var userName = button.getAttribute('data-name');
+      var userGender = button.getAttribute('data-gender');
+      var userTelephone = button.getAttribute('data-telephone');
+      var userLocation = button.getAttribute('data-location');
+
+      var modalTitle = editUserModal.querySelector('.modal-title');
+      var modalBodyInputId = editUserModal.querySelector('#edit-user-id');
+      var modalBodyInputName = editUserModal.querySelector('#edit-name');
+      var modalBodyInputGender = editUserModal.querySelector('#edit-gender');
+      var modalBodyInputTelephone = editUserModal.querySelector('#edit-telephone');
+      var modalBodyInputLocation = editUserModal.querySelector('#edit-location');
+
+      modalTitle.textContent = 'Edit User: ' + userName;
+      modalBodyInputId.value = userId;
+      modalBodyInputName.value = userName;
+      modalBodyInputGender.value = userGender;
+      modalBodyInputTelephone.value = userTelephone;
+      modalBodyInputLocation.value = userLocation;
+    });
+  });
+</script>
 {% endblock %}

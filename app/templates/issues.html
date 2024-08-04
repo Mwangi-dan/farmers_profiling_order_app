@@ -1,49 +1,85 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="mt-4">Issues</h2>
-<ul class="list-group" id="issues-list">
-    {% for issue in issues %}
-    <li class="list-group-item bg-dark text-light" data-issue-id="{{ issue.id }}">
-        {{ issue.issue_text }} - <span class="badge bg-secondary">{{ issue.status }}</span>
-        <button class="btn btn-sm btn-light resolve-button">Mark as Resolved</button>
-    </li>
-    {% endfor %}
-</ul>
+<main class="main" id="main">
+    
+    <div class="pagetitle">
+        <h1>Issues</h1>
+        <nav>
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard' )}}">Home</a></li>
+            <li class="breadcrumb-item active">Issues</li>
+          </ol>
+        </nav>
+      </div><!-- End Page Title -->
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const resolveButtons = document.querySelectorAll('.resolve-button');
+    <div class="card">
+        <div class="card-body">
+            <!-- Table with stripped rows -->
+            <table class="table datatable">
+                <thead>
+                <tr>
+                    <th><b>Name</b></th>
+                    <th>Status</th>
+                    <th>Telephone</th>
+                    <th>Location</th>
+                    <th data-type="date" data-format="YYYY/DD/MM">Date Created</th>
+                    <th>Date Updated</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for issue in issue %}
+                <tr>
+                    <td><a href="{{ url_for('admin.view_order', user_id=issue.id) }}">{{ issue.name }}</a></td>
+                    <td>{{ issue.status }}</td>
+                    <td>{{ issue.telephone }}</td>
+                    <td>{{ issue.location }}</td>
+                    <td>{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <!-- End Table with stripped rows -->
+        </div>
+    </div>
 
-        resolveButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const issueElement = this.closest('li');
-                const issueId = issueElement.getAttribute('data-issue-id');
-                updateStatus(issueId, 'Resolved');
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const resolveButtons = document.querySelectorAll('.resolve-button');
+
+            resolveButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const issueElement = this.closest('li');
+                    const issueId = issueElement.getAttribute('data-issue-id');
+                    updateStatus(issueId, 'Resolved');
+                });
             });
+
+            function updateStatus(issueId, newStatus) {
+                fetch(`/admin/issues/${issueId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`  // Ensure the access token is handled properly
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        response.json().then(data => {
+                            alert('Failed to update status: ' + data.error);
+                        });
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the status.');
+                });
+            }
         });
+    </script>
+</main>
 
-        function updateStatus(issueId, newStatus) {
-            fetch(`/admin/issues/${issueId}/status`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`  // Ensure the access token is handled properly
-                },
-                body: JSON.stringify({ status: newStatus })
-            }).then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    response.json().then(data => {
-                        alert('Failed to update status: ' + data.error);
-                    });
-                }
-            }).catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while updating the status.');
-            });
-        }
-    });
-</script>
 {% endblock %}

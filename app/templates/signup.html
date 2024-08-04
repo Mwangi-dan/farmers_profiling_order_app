@@ -7,26 +7,152 @@
             <h2 class="text-center">Sign Up</h2>
             <form method="POST" action="{{ url_for('auth.signup') }}">
                 {{ form.hidden_tag() }}
+                {{ form.csrf_token }}
                 <div class="mb-3">
                     {{ form.name.label(class="form-label") }}
                     {{ form.name(class="form-control") }}
+                    {% if form.name.errors %}
+                        <div class="text-danger">
+                            {% for error in form.name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control") }}
+                    {% if form.email.errors %}
+                        <div class="text-danger">
+                            {% for error in form.email.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.gender.label(class="form-label") }}
+                    <select name="{{ form.gender.name }}" id="{{ form.gender.id }}" class="form-control">
+                        <option value="" disabled selected>Select Gender</option>
+                        {% for value, label in form.gender.choices %}
+                            {% if value %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    {% if form.gender.errors %}
+                        <div class="text-danger">
+                            {% for error in form.gender.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.role.label(class="form-label") }}
+                    <select name="{{ form.role.name }}" id="{{ form.role.id }}" class="form-control">
+                        <option value="" disabled selected>Select Role</option>
+                        {% for value, label in form.role.choices %}
+                            {% if value %}
+                                <option value="{{ value }}">{{ label }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                    {% if form.role.errors %}
+                        <div class="text-danger">
+                            {% for error in form.role.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-3">
                     {{ form.telephone.label(class="form-label") }}
                     {{ form.telephone(class="form-control") }}
+                    {% if form.telephone.errors %}
+                        <div class="text-danger">
+                            {% for error in form.telephone.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
+                <div class="mb-3">
+                    {{ form.nationality.label(class="form-label") }}
+                    {{ form.nationality(class="form-control") }}
+                    {% if form.nationality.errors %}
+                        <div class="text-danger">
+                            {% for error in form.nationality.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Location -->
                 <div class="mb-3">
                     {{ form.location.label(class="form-label") }}
                     {{ form.location(class="form-control") }}
+                    {% if form.location.errors %}
+                        <div class="text-danger">
+                            {% for error in form.location.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
+
+                <!-- Map error -->
+                <div class="mb-3">
+                    <label for="map" class="form-label">Enter Location on Map</label>
+                    <input id="pac-input" class="form-control" type="text" placeholder="Enter a location">
+                    <div id="map" style="height: 300px;"></div>
+                </div>
+                <!-- Coordinates -->
+                {{ form.latitude(class="form-control", type="hidden") }}
+                {{ form.longitude(class="form-control", type="hidden") }}
+
+                <!-- Date of birth -->
+                <div class="mb-3">
+                    {{ form.date_of_birth.label(class="form-label") }}
+                    {{ form.date_of_birth(class="form-control") }}
+                    {% if form.date_of_birth.errors %}
+                        <div class="text-danger">
+                            {% for error in form.date_of_birth.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Password -->
                 <div class="mb-3">
                     {{ form.password.label(class="form-label") }}
                     {{ form.password(class="form-control") }}
+                    {% if form.password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.password.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
+
+                <!-- Confirm Password -->
                 <div class="mb-3">
+                    
                     {{ form.confirm_password.label(class="form-label") }}
                     {{ form.confirm_password(class="form-control") }}
+                    {% if form.confirm_password.errors %}
+                        <div class="text-danger">
+                            {% for error in form.confirm_password.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
                 </div>
+
+                <!-- Submit button -->
                 <div class="mb-3">
                     {{ form.submit(class="btn btn-primary w-100") }}
                 </div>
@@ -35,4 +161,48 @@
         </div>
     </div>
 </div>
+
+<!-- Include Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap" async defer></script>
+<script>
+    async function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -1.2921, lng: 36.8219},  // Center the map to Nairobi, Kenya
+            zoom: 10
+        });
+
+        var input = document.getElementById('pac-input');
+        var autocomplete = new google.maps.places.Autocomplete(input);
+        autocomplete.bindTo('bounds', map);
+
+        var marker = new google.maps.Marker({
+            map: map,
+            anchorPoint: new google.maps.Point(0, -29)
+        });
+
+        autocomplete.addListener('place_changed', function() {
+            marker.setVisible(false);
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            // If the place has a geometry, then present it on a map.
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);  // Why 17? Because it looks good.
+            }
+
+            marker.setPosition(place.geometry.location);
+            marker.setVisible(true);
+
+            document.getElementById('{{ form.latitude.id }}').value = place.geometry.location.lat().toFixed(6);
+            document.getElementById('{{ form.longitude.id }}').value = place.geometry.location.lng().toFixed(6);
+            document.getElementById('{{ form.location.id }}').value = place.formatted_address;
+        });
+    }
+</script>
 {% endblock %}

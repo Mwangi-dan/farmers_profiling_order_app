@@ -1,49 +1,118 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="mt-4">Orders</h2>
-<ul class="list-group" id="orders-list">
-    {% for order in orders %}
-    <li class="list-group-item bg-dark text-light" data-order-id="{{ order.id }}">
-        {{ order.product_name }} - <span class="badge bg-secondary">{{ order.status }}</span>
-        <button class="btn btn-sm btn-light ship-button">Mark as Shipped</button>
-    </li>
-    {% endfor %}
-</ul>
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Orders</h1>
+        <nav>
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard' )}}">Home</a></li>
+            <li class="breadcrumb-item active">Orders</li>
+          </ol>
+        </nav>
+      </div><!-- End Page Title -->
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const shipButtons = document.querySelectorAll('.ship-button');
 
-        shipButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const orderElement = this.closest('li');
-                const orderId = orderElement.getAttribute('data-order-id');
-                updateOrderStatus(orderId, 'Shipped');
-            });
-        });
+    <div class="card">
+        <div class="card-body">
+            <!-- Table with stripped rows -->
+            <table class="table datatable">
+                <thead>
+                <tr>
+                    <th><b>Name</b></th>
+                    <th>Status</th>
+                    <th>Telephone</th>
+                    <th>Location</th>
+                    <th data-type="date" data-format="YYYY/DD/MM">Date Created</th>
+                    <th data-type="date" data-format="YYYY/DD/MM">Date Updated</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for order in order %}
+                <tr>
+                    <td><a href="{{ url_for('admin.view_order', user_id=issue.id) }}">{{ order.name }}</a></td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.telephone }}</td>
+                    <td>{{ order.location }}</td>
+                    <td>{{ order.created_at.strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <!-- End Table with stripped rows -->
+        </div>
+    </div>
 
-        function updateOrderStatus(orderId, newStatus) {
-            fetch(`/admin/orders/${orderId}/status`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`  // Ensure the access token is handled properly
+    <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Order History</h5>
+
+          <!-- Line Chart -->
+          <canvas id="lineChart" style="max-height: 400px;"></canvas>
+          <script>
+            document.addEventListener("DOMContentLoaded", () => {
+              new Chart(document.querySelector('#lineChart'), {
+                type: 'line',
+                data: {
+                  labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
+                  datasets: [{
+                    label: 'Line Chart',
+                    data: [65, 59, 80, 81, 56, 55, 40],
+                    fill: false,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1
+                  }]
                 },
-                body: JSON.stringify({ status: newStatus })
-            }).then(response => {
-                if (response.ok) {
-                    location.reload();
-                } else {
-                    response.json().then(data => {
-                        alert('Failed to update status: ' + data.error);
-                    });
+                options: {
+                  scales: {
+                    y: {
+                      beginAtZero: true
+                    }
+                  }
                 }
-            }).catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while updating the status.');
+              });
             });
-        }
-    });
-</script>
+          </script>
+          <!-- End Line CHart -->
+
+        </div>
+      </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const shipButtons = document.querySelectorAll('.ship-button');
+
+            shipButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const orderElement = this.closest('li');
+                    const orderId = orderElement.getAttribute('data-order-id');
+                    updateOrderStatus(orderId, 'Shipped');
+                });
+            });
+
+            function updateOrderStatus(orderId, newStatus) {
+                fetch(`/admin/orders/${orderId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('access_token')}`  // Ensure the access token is handled properly
+                    },
+                    body: JSON.stringify({ status: newStatus })
+                }).then(response => {
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        response.json().then(data => {
+                            alert('Failed to update status: ' + data.error);
+                        });
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while updating the status.');
+                });
+            }
+        });
+    </script>  
+</main>
+
 {% endblock %}

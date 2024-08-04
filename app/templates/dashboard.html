@@ -1,49 +1,344 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="mb-6">
-    <h2 class="text-2xl font-bold mb-4">Export Reports</h2>
-    <div class="space-x-2">
-        <a href="{{ url_for('admin.export_users_csv') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Users as CSV</a>
-        <a href="{{ url_for('admin.export_issues_csv') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Issues as CSV</a>
-        <a href="{{ url_for('admin.export_orders_csv') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Orders as CSV</a>
-        <a href="{{ url_for('admin.export_users_pdf') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Users as PDF</a>
-        <a href="{{ url_for('admin.export_issues_pdf') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Issues as PDF</a>
-        <a href="{{ url_for('admin.export_orders_pdf') }}" class="bg-blue-500 text-white px-4 py-2 rounded">Export Orders as PDF</a>
-    </div>
-</div>
-<div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-    <div class="bg-white p-6 rounded-lg shadow">
-        <h3 class="text-xl font-bold mb-4">Issues</h3>
-        <ul class="list-disc pl-6 space-y-2">
-            {% for issue in issues %}
-            <li class="bg-gray-800 text-white p-4 rounded-lg flex justify-between items-center">
-                <span>{{ issue.issue_text }} - {{ issue.status }}</span>
-                <span class="bg-gray-600 text-white px-2 py-1 rounded">{{ issue.created_at.strftime('%Y-%m-%d') }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-    <div class="bg-white p-6 rounded-lg shadow">
-        <h3 class="text-xl font-bold mb-4">Orders</h3>
-        <ul class="list-disc pl-6 space-y-2">
-            {% for order in orders %}
-            <li class="bg-gray-800 text-white p-4 rounded-lg flex justify-between items-center">
-                <span>{{ order.product_name }} - {{ order.status }}</span>
-                <span class="bg-gray-600 text-white px-2 py-1 rounded">{{ order.created_at.strftime('%Y-%m-%d') }}</span>
-            </li>
-            {% endfor %}
-        </ul>
-    </div>
-</div>
+<main id="main" class="main">
 
-<!-- <script>
-    var userLabels = JSON.parse('{{ user_labels | tojson | safe }}');
-    var userCounts = JSON.parse('{{ user_counts | tojson | safe }}')';
-    var issueLabels = {{ issue_labels | tojson | safe }};
-    var issueCounts = {{ issue_counts | tojson | safe }};
-    var orderLabels = {{ order_labels | tojson | safe }};
-    var orderCounts = {{ order_counts | tojson | safe }};
-</script> -->
-<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <div class="pagetitle">
+      <h1>Dashboard</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard' )}}">Home</a></li>
+          <li class="breadcrumb-item active">Dashboard</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section dashboard">
+      <div class="row">
+
+        <!-- Left side columns -->
+        <div class="col-lg-8">
+          <div class="row">
+
+            <!-- Sales Card -->
+            <div class="col-xxl-4 col-md-6">
+              <div class="card info-card sales-card">
+
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+
+                <div class="card-body">
+                  <h5 class="card-title">Users <span>| Registered</span></h5>
+
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-person"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>{{ user_count }}</h6>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div><!-- End Sales Card -->
+
+            <!-- Revenue Card -->
+            <div class="col-xxl-4 col-md-6">
+              <div class="card info-card revenue-card">
+
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+
+                <div class="card-body">
+                  <h5 class="card-title">Recent Orders <span>| Week</span></h5>
+
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-cart-fill"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>{{ orders_this_week }}</h6>
+
+
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div><!-- End Revenue Card -->
+
+            <!-- Customers Card -->
+            <div class="col-xxl-4 col-xl-12">
+
+              <div class="card info-card customers-card">
+
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+
+                <div class="card-body">
+                  <h5 class="card-title">Issues <span>| Week</span></h5>
+
+                  <div class="d-flex align-items-center">
+                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                      <i class="bi bi-patch-question-fill"></i>
+                    </div>
+                    <div class="ps-3">
+                      <h6>{{ issue_count }}</h6>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+            </div><!-- End Customers Card -->
+
+            <!-- Recent Sales -->
+            <div class="col-12">
+              <div class="card recent-sales overflow-auto">
+
+                <div class="filter">
+                  <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                  <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                    <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                    </li>
+
+                    <li><a class="dropdown-item" href="#">Today</a></li>
+                    <li><a class="dropdown-item" href="#">This Month</a></li>
+                    <li><a class="dropdown-item" href="#">This Year</a></li>
+                  </ul>
+                </div>
+                
+                <!-- Users -->
+                <div class="card-body">
+                  <h5 class="card-title"><a href="{{ url_for('admin.get_users') }}">Users</a><span> | Today</span></h5>
+
+                  <table class="table table-borderless datatable">
+                    <thead>
+                      <tr>
+                        <th scope="col">ID</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Gender</th>
+                        <th scope="col">Date of Birth</th>
+                        <th scope="col">Joined</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%  for user in users %}
+                      <tr>
+                        <th scope="row">{{  user.id }}</th>
+                        <td>{{ user.name }}</td>
+                        <td>{{  user.gender }}</td>
+                        <td>{{ user.date_of_birth }}</td>
+                        <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+
+                </div>
+
+
+                <!-- Orders -->
+                <div class="card-body">
+                  <h5 class="card-title"><a href="{{ url_for('admin.get_orders') }}">Recent Orders </a><span>| Today</span></h5>
+
+                  <table class="table table-borderless datatable">
+                    <thead>
+                      <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Customer</th>
+                        <th scope="col">Product</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {%  for order in orders %}
+                      <tr>
+                        <th scope="row"><a href="#">{{  order.id }}</a></th>
+                        <td>{{ order.user }}</td>
+                        <td><a href="#" class="text-primary">{{  order.product_name }}</a></td>
+                        <td>{{ order.price }}</td>
+                        {% if order.status == 'Pending' %}
+                        <td><span class="badge bg-warning">{{ order.status }}</span></td>
+                        {% elif order.status == 'Approved' %}
+                        <td><span class="badge bg-success">{{ order.status }}</span></td>
+                        {% else %}
+                        <td><span class="badge bg-danger">{{ order.status }}</span></td>
+                        {% endif %}
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+
+                </div>
+
+                
+
+              </div>
+            </div><!-- End Recent Sales -->
+          </div>
+        </div><!-- End Left side columns -->
+
+        <!-- Right side columns -->
+        <div class="col-lg-4">
+
+          <!-- Recent Activity -->
+          <div class="card">
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Today</a></li>
+                <li><a class="dropdown-item" href="#">This Month</a></li>
+                <li><a class="dropdown-item" href="#">This Year</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body">
+              <h5 class="card-title">Customer Issues <span>| Today</span></h5>
+
+              <div class="activity">
+                {% for issue in issues %}
+                <div class="activity-item d-flex">
+                  <div class="activite-label">32 min</div>
+                  {% if issue.status == 'Open' %}
+                  <i class='bi bi-circle-fill activity-badge text-danger align-self-start'></i>
+                  {% elif issue.status == 'Closed' %}
+                  <i class='bi bi-circle-fill activity-badge text-success align-self-start'></i>
+                  {% else %}
+                  <div class="activity-content">
+                    {{ issue.issue_text}}
+                  </div>
+                  {% endif %}
+                </div><!-- End activity item-->
+                {% endfor %}
+              </div>
+
+            </div>
+          </div><!-- End Recent Activity -->
+
+          <!-- Website Traffic -->
+          <div class="card">
+            <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                <li class="dropdown-header text-start">
+                  <h6>Filter</h6>
+                </li>
+
+                <li><a class="dropdown-item" href="#">Today</a></li>
+                <li><a class="dropdown-item" href="#">This Month</a></li>
+                <li><a class="dropdown-item" href="#">This Year</a></li>
+              </ul>
+            </div>
+
+            <div class="card-body pb-0">
+              <h5 class="card-title">Website Traffic <span>| Today</span></h5>
+
+              <div id="trafficChart" style="min-height: 400px;" class="echart"></div>
+
+              <script>
+                document.addEventListener("DOMContentLoaded", () => {
+                  echarts.init(document.querySelector("#trafficChart")).setOption({
+                    tooltip: {
+                      trigger: 'item'
+                    },
+                    legend: {
+                      top: '5%',
+                      left: 'center'
+                    },
+                    series: [{
+                      name: 'Access From',
+                      type: 'pie',
+                      radius: ['40%', '70%'],
+                      avoidLabelOverlap: false,
+                      label: {
+                        show: false,
+                        position: 'center'
+                      },
+                      emphasis: {
+                        label: {
+                          show: true,
+                          fontSize: '18',
+                          fontWeight: 'bold'
+                        }
+                      },
+                      labelLine: {
+                        show: false
+                      },
+                      data: [{
+                          value: 1048,
+                          name: 'Search Engine'
+                        },
+                        {
+                          value: 735,
+                          name: 'Direct'
+                        },
+                        {
+                          value: 580,
+                          name: 'Email'
+                        },
+                        {
+                          value: 484,
+                          name: 'Union Ads'
+                        },
+                        {
+                          value: 300,
+                          name: 'Video Ads'
+                        }
+                      ]
+                    }]
+                  });
+                });
+              </script>
+
+            </div>
+          </div><!-- End Website Traffic -->
+
+        </div><!-- End Right side columns -->
+
+      </div>
+    </section>
+
+  </main><!-- End #main -->
+
+
+
+  
 {% endblock %}

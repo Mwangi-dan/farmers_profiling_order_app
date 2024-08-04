@@ -1,9 +1,22 @@
 import os
+from datetime import timedelta
+
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    JWT_SECRET_KEY = 'your_jwt_secret_key'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)  # 1 hour
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)  # 30 days
+    JWT_TOKEN_LOCATION = ['cookies']
+    JWT_ACCESS_COOKIE_PATH = '/'
+    JWT_REFRESH_COOKIE_PATH = '/auth/token/refresh'
+    JWT_COOKIE_SECURE = False  # Should be True in production with HTTPS
+    WTF_CSRF_ENABLED = True
+    WTF_CSRF_SECRET_KEY = 'your_csrf_secret_key'
+    SESSION_COOKIE_DOMAIN = False
 
 ISSUE_STATUS = ['Open', 'In Progress', 'Resolved', 'Closed']
 ORDER_STATUS = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']

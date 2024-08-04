@@ -7,10 +7,15 @@ db = SQLAlchemy()
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    photo = db.Column(db.String(200))
+    photo = db.Column(db.LargeBinary)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     telephone = db.Column(db.String(20), unique=True, nullable=False)
     group_name = db.Column(db.String(100))
+    nationality = db.Column(db.String(100)) 
     location = db.Column(db.String(100), nullable=False)
+    latitude = db.Column(db.Float)
+    role = db.Column(db.String(50), default='Farmer', nullable=False)
+    longitude = db.Column(db.Float) 
     land_size = db.Column(db.Float)
     crop = db.Column(db.String(100))
     last_yield = db.Column(db.Float)
@@ -20,6 +25,16 @@ class User(db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+
+    def update_detials(self, name, telephone, group_name, location, land_size, crop, last_yield, bank):
+        self.name = name
+        self.telephone = telephone
+        self.group_name = group_name
+        self.location = location
+        self.land_size = land_size
+        self.crop = crop
+        self.last_yield = last_yield
+        self.bank_account = bank
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -34,6 +49,7 @@ class User(db.Model):
             'photo': self.photo,
             'telephone': self.telephone,
             'group_name': self.group_name,
+            'nationality': self.nationality,
             'location': self.location,
             'land_size': self.land_size,
             'crop': self.crop,
@@ -44,6 +60,11 @@ class User(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+    
+    __table_args__ = (
+        db.UniqueConstraint('telephone', name='uq_user_telephone'),
+        db.UniqueConstraint('email', name='uq_user_email'),
+    )
     
 class Issue(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -73,7 +94,6 @@ class Order(db.Model):
     product_name = db.Column(db.String(100), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
-    status = db.Column(db.String(50), default='Pending')
     status = db.Column(db.String(50), default='Pending')
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))

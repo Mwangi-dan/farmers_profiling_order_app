@@ -1,5 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, make_response, send_file
-from flask_jwt_extended import create_access_token, set_access_cookies, jwt_required, get_jwt_identity, verify_jwt_in_request
+from flask_jwt_extended import (
+    create_access_token, create_refresh_token, set_access_cookies, 
+    jwt_required, get_jwt_identity, set_refresh_cookies, verify_jwt_in_request
+)
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import check_password_hash
 from app.models import User, Issue, Order
 import csv
@@ -8,24 +12,31 @@ from app import db
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from config import ISSUE_STATUS, ORDER_STATUS
+from app.forms import RegistrationForm, LoginForm
+from datetime import datetime, timedelta
 
 admin = Blueprint('admin', __name__)
 
+csrf = CSRFProtect()
+
+
+
 @admin.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        telephone = request.form.get('telephone')
-        password = request.form.get('password')
-        user = User.query.query.filter_by(telephone=telephone).first()
-
-        if user and check_password_hash(user.password, password):
-            access_token = create_access_token(identity={'telephone':user.telephone})
-            response = redirect(url_for(admin.dashboard))
+    form = LoginForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(telephone=form.telephone.data).first()
+        if user and check_password_hash(user.password_hash, form.password.data):
+            access_token = create_access_token(identity={'telephone': user.telephone})
+            refresh_token = create_refresh_token(identity={'telephone': user.telephone})
+            response = make_response(redirect(url_for('admin.dashboard')))
             set_access_cookies(response, access_token)
+            set_refresh_cookies(response, refresh_token)
+            flash('You have been logged in!', 'success')
             return response
         else:
-            flash('Invalid telephone number or password')
-    return render_template('login.html')
+            flash('Login Unsuccessful. Please check telephone and password', 'danger')
+    return render_template('login.html', form=form)
 
 
 @admin.route('/register', methods=['GET', 'POST'])
@@ -48,7 +59,7 @@ def before_request():
     verify_jwt_in_request(optional=True)
     token = request.cookies.get('access_token')
     if token:
-        request.headers = {'Authorization': f'Bearer {token}'}
+        request.headers['Authorization'] = f'Bearer {token}'
 
 
 @admin.route('/dashboard')
@@ -58,32 +69,33 @@ def dashboard():
     if not get_jwt_identity():
         return redirect(url_for('admin.login'))
 
-    current_user = get_jwt_identity()
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
     users = User.query.all()
     issues = Issue.query.all()
     orders = Order.query.all()
 
-    user_labels = [user.name for user in users]
-    user_counts = [1 for _ in users]  # Example: Count 1 per user
+    # Calculate the start of today and the start of this week
+    today = datetime.utcnow().date()
+    start_of_week = today - timedelta(days=today.weekday())
 
-    issue_labels = [issue.status for issue in issues]
-    issue_counts = [issue_labels.count(status) for status in set(issue_labels)]
+    # Query for today's orders
+    orders_today = Order.query.filter(Order.created_at >= today).count()
 
-    order_labels = [order.status for order in orders]
-    order_counts = [order_labels.count(status) for status in set(order_labels)]
-
+    # Query for this week's orders
+    orders_this_week = Order.query.filter(Order.created_at >= start_of_week).count()
 
     return render_template(
-        'dashboard.html', 
-        users=users, 
+        'dashboard.html',
+        current_user=current_user,
+        users=users,
+        user_count=len(users),
         issues=issues, 
         orders=orders,
-        user_labels=user_labels,
-        user_counts=user_counts,
-        issue_labels=issue_labels,
-        issue_counts=issue_counts,
-        order_labels=order_labels,
-        order_counts=order_counts)
+        issue_count=len(issues),
+        orders_today=orders_today,
+        orders_this_week=orders_this_week
+        )
 
 
 @admin.route('/issues/<int:issue_id>/status', methods=['PUT'])
@@ -133,19 +145,22 @@ def add_user():
         return redirect(url_for('admin.get_users'))
     return render_template('add_user.html')
 
-@admin.route('/users/edit/<int:user_id>', methods=['GET', 'POST'])
+@admin.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
 @jwt_required()
 def edit_user(user_id):
     user = User.query.get_or_404(user_id)
+    print("Route accessed")
     if request.method == 'POST':
+        print("Form submitted")
         user.name = request.form['name']
+        user.gender = request.form['gender']
         user.telephone = request.form['telephone']
         user.location = request.form['location']
-        if request.form['password']:
-            user.set_password(request.form['password'])
+        print(f"Updated data: Name={user.name}, Gender={user.gender}, Telephone={user.telephone}, Location={user.location}")
         db.session.commit()
+        flash('User updated successfully!', 'success')
         return redirect(url_for('admin.get_users'))
-    return render_template('edit_user.html', user=user)
+    return render_template('edit_users.html', user=user)
 
 @admin.route('/users/delete/<int:user_id>', methods=['POST'])
 @jwt_required()
@@ -158,21 +173,38 @@ def delete_user(user_id):
 @admin.route('/users', methods=['GET'])
 @jwt_required()
 def get_users():
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
     users = User.query.all()
-    return render_template('users.html', users=users)
+    return render_template('users.html', users=users, current_user=current_user)
+
+
+# page to view more info of users
+@admin.route('/view_user/<int:user_id>', methods=['GET'])
+@jwt_required()
+def view_user(user_id):
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+    user = User.query.get_or_404(user_id)
+    return render_template('view_user.html', user=user, current_user=current_user)
 
 
 @admin.route('/issues')
 @jwt_required()
 def get_issues():
     issues = Issue.query.all()
-    return render_template('issues.html', issues=issues)
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+    return render_template('issues.html', issues=issues, current_user=current_user)
+
 
 @admin.route('/orders')
 @jwt_required()
 def get_orders():
     orders = Order.query.all()
-    return render_template('orders.html', orders=orders)
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+    return render_template('orders.html', orders=orders, current_user=current_user)
 
 
 @admin.route('/api/users', methods=['GET'])
@@ -188,6 +220,44 @@ def api_get_issues():
     issues = Issue.query.all()
     return jsonify([issue.serialize() for issue in issues])
 
+
+@admin.route('/profile/<int:user_id>', methods=['GET', 'POST'])
+@jwt_required()
+def profile(user_id):
+    active = active
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+    user = User.query.get_or_404(user_id)
+    return render_template('profile.html', user=user, current_user=current_user, active=active)
+
+
+# Edit profile route
+@admin.route('/edit_profile/<int:user_id>', methods=['POST'])
+@jwt_required()
+# @csrf.protect()
+def edit_profile(user_id):
+    csrf.generate_csrf()
+    user = User.query.get_or_404(user_id)
+    
+    if 'photo' in request.files:
+        photo = request.files['photo']
+        if photo.filename != '':
+            user.photo = photo.read()  # Read and store the binary data
+    
+    user.name = request.form['name']
+    user.telephone = request.form['telephone']
+    user.location = request.form['location']
+    user.group_name = request.form['group_name']
+    user.land_size = request.form.get('land_size', type=float)
+    user.crop = request.form['crop']
+    user.last_yield = request.form.get('last_yield', type=float)
+    user.bank_account = request.form.get('bank_account') == 'True'
+    user.gender = request.form['gender']
+    user.date_of_birth = request.form.get('date_of_birth', type=lambda d: datetime.strptime(d, '%Y-%m-%d'))
+
+    db.session.commit()
+    flash('Profile updated successfully!', 'success')
+    return redirect(url_for('admin.profile', user_id=user.id))
 
 @admin.route('/api/orders', methods=['GET'])
 @jwt_required()
@@ -285,6 +355,7 @@ def export_users_pdf():
     buffer.seek(0)
 
     return send_file(buffer, as_attachment=True, download_name='users_report.pdf', mimetype='application/pdf')
+
 
 
 @admin.route('/export/issues/pdf')
