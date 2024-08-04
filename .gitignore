@@ -3,3 +3,4 @@ package-lock.json
 package.json
 __pycache__
 /app/__pycache__
+.env
