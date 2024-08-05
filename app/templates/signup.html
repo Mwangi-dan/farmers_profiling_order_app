@@ -7,13 +7,24 @@
             <h2 class="text-center">Sign Up</h2>
             <form method="POST" action="{{ url_for('auth.signup') }}">
                 {{ form.hidden_tag() }}
-                {{ form.csrf_token }}
+                <!-- {{ form.csrf_token }} -->
                 <div class="mb-3">
                     {{ form.name.label(class="form-label") }}
                     {{ form.name(class="form-control") }}
                     {% if form.name.errors %}
                         <div class="text-danger">
                             {% for error in form.name.errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="mb-3">
+                    {{ form.lastname.label(class="form-label") }}
+                    {{ form.lastname(class="form-control") }}
+                    {% if form.lastname.errors %}
+                        <div class="text-danger">
+                            {% for error in form.lastname.errors %}
                                 <p>{{ error }}</p>
                             {% endfor %}
                         </div>
@@ -108,9 +119,7 @@
                     <input id="pac-input" class="form-control" type="text" placeholder="Enter a location">
                     <div id="map" style="height: 300px;"></div>
                 </div>
-                <!-- Coordinates -->
-                {{ form.latitude(class="form-control", type="hidden") }}
-                {{ form.longitude(class="form-control", type="hidden") }}
+
 
                 <!-- Date of birth -->
                 <div class="mb-3">
@@ -163,46 +172,65 @@
 </div>
 
 <!-- Include Google Maps API -->
-<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap" async defer></script>
+<script async src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap" async defer></script>
 <script>
-    async function initMap() {
-        var map = new google.maps.Map(document.getElementById('map'), {
-            center: {lat: -1.2921, lng: 36.8219},  // Center the map to Nairobi, Kenya
-            zoom: 10
-        });
+    function initMap() {
+        var map;
+        var autocomplete;
+        var marker;
 
-        var input = document.getElementById('pac-input');
-        var autocomplete = new google.maps.places.Autocomplete(input);
-        autocomplete.bindTo('bounds', map);
+        function initialize() {
+            map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: -1.2921, lng: 36.8219},  // Center the map to Nairobi, Kenya
+                zoom: 10
+            });
 
-        var marker = new google.maps.Marker({
-            map: map,
-            anchorPoint: new google.maps.Point(0, -29)
-        });
+            var input = document.getElementById('pac-input');
+            autocomplete = new google.maps.places.Autocomplete(input);
+            autocomplete.bindTo('bounds', map);
 
-        autocomplete.addListener('place_changed', function() {
-            marker.setVisible(false);
-            var place = autocomplete.getPlace();
-            if (!place.geometry) {
-                window.alert("No details available for input: '" + place.name + "'");
-                return;
-            }
+            marker = new google.maps.Marker({
+                map: map,
+                anchorPoint: new google.maps.Point(0, -29)
+            });
 
-            // If the place has a geometry, then present it on a map.
-            if (place.geometry.viewport) {
-                map.fitBounds(place.geometry.viewport);
-            } else {
-                map.setCenter(place.geometry.location);
-                map.setZoom(17);  // Why 17? Because it looks good.
-            }
+            autocomplete.addListener('place_changed', function() {
+                marker.setVisible(false);
+                var place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    window.alert("No details available for input: '" + place.name + "'");
+                    return;
+                }
 
-            marker.setPosition(place.geometry.location);
-            marker.setVisible(true);
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);  // Why 17? Because it looks good.
+                }
 
-            document.getElementById('{{ form.latitude.id }}').value = place.geometry.location.lat().toFixed(6);
-            document.getElementById('{{ form.longitude.id }}').value = place.geometry.location.lng().toFixed(6);
-            document.getElementById('{{ form.location.id }}').value = place.formatted_address;
-        });
+                marker.setPosition(place.geometry.location);
+                marker.setVisible(true);
+
+                document.getElementById('{{ form.latitude.id }}').value = place.geometry.location.lat();
+                document.getElementById('{{ form.longitude.id }}').value = place.geometry.location.lng();
+                document.getElementById('{{ form.location.id }}').value = place.formatted_address;
+            });
+        }
+
+        if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+            initialize();
+        } else {
+            window.initMap = initialize;
+        }
     }
+
+    window.onload = function() {
+        if (typeof google !== 'undefined' && typeof google.maps !== 'undefined') {
+            initMap();
+        } else {
+            window.initMap = initMap;
+        }
+    };
 </script>
 {% endblock %}

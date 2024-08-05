@@ -234,6 +234,7 @@
               <h5 class="card-title">Customer Issues <span>| Today</span></h5>
 
               <div class="activity">
+                {% if issue_count > 0 %}
                 {% for issue in issues %}
                 <div class="activity-item d-flex">
                   <div class="activite-label">32 min</div>
@@ -248,6 +249,13 @@
                   {% endif %}
                 </div><!-- End activity item-->
                 {% endfor %}
+                {% else %}
+                <div class="activity-item d-flex">
+                  <div class="activity-content">
+                    No issues reported today
+                  </div>
+                </div>
+                {% endif %}
               </div>
 
             </div>
@@ -269,7 +277,7 @@
             </div>
 
             <div class="card-body pb-0">
-              <h5 class="card-title">Website Traffic <span>| Today</span></h5>
+              <h5 class="card-title">Placeholder Chart <span>| Today</span></h5>
 
               <div id="trafficChart" style="min-height: 400px;" class="echart"></div>
 

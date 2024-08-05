@@ -1,0 +1,123 @@
+{% extends 'auth_base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h2 class="text-center">Farmer Sign Up</h2>
+            <form method="POST" action="{{ url_for('auth.signup_farmer') }}">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.nin.label(class="form-label") }}
+                    {{ form.nin(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.telephone.label(class="form-label") }}
+                    {{ form.telephone(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.location.label(class="form-label") }}
+                    {{ form.location(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    <label for="map" class="form-label">Enter Location on Map</label>
+                    <input id="pac-input" class="form-control" type="text" placeholder="Enter a location">
+                    <div id="map" style="height: 300px;"></div>
+                </div>
+                {{ form.latitude(class="form-control d-none") }}
+                {{ form.longitude(class="form-control d-none") }}
+                <div class="mb-3">
+                    {{ form.group_name.label(class="form-label") }}
+                    {{ form.group_name(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.land_size.label(class="form-label") }}
+                    {{ form.land_size(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.crop.label(class="form-label") }}
+                    {{ form.crop(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.last_yield.label(class="form-label") }}
+                    {{ form.last_yield(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.bank_account.label(class="form-label") }}
+                    {{ form.bank_account(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.gender.label(class="form-label") }}
+                    {{ form.gender(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.date_of_birth.label(class="form-label") }}
+                    {{ form.date_of_birth(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.password.label(class="form-label") }}
+                    {{ form.password(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.confirm_password.label(class="form-label") }}
+                    {{ form.confirm_password(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </div>
+            </form>
+            <p class="text-center">Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+        </div>
+    </div>
+</div>
+
+<script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places&callback=initMap" async defer></script>
+<script>
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -1.2921, lng: 36.8219},
+            zoom: 10
+        });
+
+        var input = document.getElementById('pac-input');
+        var autocomplete = new google.maps.places.Autocomplete(input);
+        autocomplete.bindTo('bounds', map);
+
+        var marker = new google.maps.Marker({
+            map: map,
+            anchorPoint: new google.maps.Point(0, -29)
+        });
+
+        autocomplete.addListener('place_changed', function() {
+            marker.setVisible(false);
+            var place = autocomplete.getPlace();
+            if (!place.geometry) {
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);
+            }
+
+            marker.setPosition(place.geometry.location);
+            marker.setVisible(true);
+
+            document.getElementById('{{ form.latitude.id }}').value = place.geometry.location.lat();
+            document.getElementById('{{ form.longitude.id }}').value = place.geometry.location.lng();
+            document.getElementById('{{ form.location.id }}').value = place.formatted_address;
+        });
+    }
+</script>
+{% endblock %}

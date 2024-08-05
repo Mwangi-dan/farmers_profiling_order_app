@@ -324,7 +324,7 @@
             var bsAlert = new bootstrap.Alert(alert);
             bsAlert.close();
         });
-    }, 1); // Adjust the timeout duration as needed
+    }, 4000); // Adjust the timeout duration as needed
   });
 
 })();

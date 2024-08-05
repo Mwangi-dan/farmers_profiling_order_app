@@ -5,28 +5,25 @@ from werkzeug.security import generate_password_hash, check_password_hash
 db = SQLAlchemy()
 
 class User(db.Model):
+    __tablename__ = 'user' 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    photo = db.Column(db.LargeBinary)
+    lastname = db.Column(db.String(100))
+    photo = db.Column(db.String(150), default='default.jpg')
     email = db.Column(db.String(120), unique=True, nullable=False)
     telephone = db.Column(db.String(20), unique=True, nullable=False)
-    group_name = db.Column(db.String(100))
     nationality = db.Column(db.String(100)) 
     location = db.Column(db.String(100), nullable=False)
     latitude = db.Column(db.Float)
-    role = db.Column(db.String(50), default='Farmer', nullable=False)
+    role = db.Column(db.String(50), default='farmer', nullable=False)
     longitude = db.Column(db.Float) 
-    land_size = db.Column(db.Float)
-    crop = db.Column(db.String(100))
-    last_yield = db.Column(db.Float)
-    bank_account = db.Column(db.Boolean, default=False)
     gender = db.Column(db.String(10))
     date_of_birth = db.Column(db.Date)
     password_hash = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
-    def update_detials(self, name, telephone, group_name, location, land_size, crop, last_yield, bank):
+    def update_details(self, name, telephone, group_name, location, land_size, crop, last_yield, bank):
         self.name = name
         self.telephone = telephone
         self.group_name = group_name
@@ -38,9 +35,17 @@ class User(db.Model):
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
+
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+    
+
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'user',
+        'polymorphic_on': role
+    }
     
     def serialize(self):
         return {
@@ -67,6 +72,7 @@ class User(db.Model):
     )
     
 class Issue(db.Model):
+    __tablename__ = 'issues'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('issues', lazy=True))
@@ -88,6 +94,7 @@ class Issue(db.Model):
         }
         
 class Order(db.Model):
+    __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('orders', lazy=True))
@@ -109,3 +116,45 @@ class Order(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+    
+
+class Farmer(User):
+    __tablename__ = 'farmer'
+    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    nin = db.Column(db.String(20), unique=True, nullable=False)
+    group_name = db.Column(db.String(100))
+    land_size = db.Column(db.Float)
+    crop = db.Column(db.String(100))
+    last_yield = db.Column(db.Float)
+    bank_account = db.Column(db.Boolean, default=False)
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'farmer',
+        'inherit_condition': (id == User.id)
+    }
+
+
+class Admin(User):
+    __tablename__ = 'admin'
+    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    admin_id = db.Column(db.String(100))
+
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'admin',
+        'inherit_condition': (id == User.id)
+    }
+
+
+class Supplier(User):
+    __tablename__ = 'suppliers'
+    id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
+    nin = db.Column(db.String(20), unique=True, nullable=False)
+    company_name = db.Column(db.String(100))
+    products = db.Column(db.String(255))  # List of products or services provided
+    contact_person = db.Column(db.String(100))
+
+    __mapper_args__ = {
+        'polymorphic_identity': 'supplier',
+        'inherit_condition': (id == User.id)
+    }

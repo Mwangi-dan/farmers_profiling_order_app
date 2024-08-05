@@ -1,5 +1,4 @@
 from flask import Flask, request, redirect, url_for, render_template
-from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_cors import CORS
 from app.models import db
@@ -9,6 +8,7 @@ from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_jwt_extended import JWTManager
 import os
 from .filters import time_since
+from flask_uploads import UploadSet, configure_uploads, IMAGES
 
 
 load_dotenv()
@@ -21,6 +21,11 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object('config.Config')
     app.config['GOOGLE_MAPS_API_KEY'] = os.getenv('GOOGLE_MAPS_API_KEY')
+    app.config['UPLOADED_PHOTOS_DEST'] = os.path.join(os.getcwd(), 'app/static/images/uploads')
+
+
+    photos = UploadSet('photos', IMAGES)
+    configure_uploads(app, photos)
 
     migrate = Migrate(app, db, render_as_batch=True)
     db.init_app(app)
@@ -52,6 +57,7 @@ def create_app():
     @jwt.invalid_token_loader
     def invalid_token_callback(error):
         return unauthorized_error("Invalid token")
+    
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
@@ -82,6 +88,6 @@ def create_app():
     return app
 
 
-if __name__ == '__main__':
-    app = create_app()
-    app.run(debug=True, port=5000)
+# if __name__ == '__main__':
+#     app = create_app()
+#     app.run(debug=True, port=5000)

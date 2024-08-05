@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main id="main" class="main">
+    <div class="pagetitle">
+      <h1>Generate Report</h1>
+      <nav>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Home</a></li>
+          <li class="breadcrumb-item active">Generate Report</li>
+        </ol>
+      </nav>
+    </div><!-- End Page Title -->
+
+    <section class="section">
+      <div class="row">
+        <div class="col-lg-8 offset-lg-2">
+          <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Report Generation</h5>
+              <form method="POST" action="{{ url_for('admin.report_generation') }}">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                  {{ form.report_type.label(class="form-label") }}
+                  {{ form.report_type(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                  {{ form.start_date.label(class="form-label") }}
+                  {{ form.start_date(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                  {{ form.end_date.label(class="form-label") }}
+                  {{ form.end_date(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                  {{ form.submit(class="btn btn-primary") }}
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+</main>
+{% endblock %}

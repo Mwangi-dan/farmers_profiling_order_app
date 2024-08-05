@@ -17,6 +17,16 @@ class Config:
     WTF_CSRF_ENABLED = True
     WTF_CSRF_SECRET_KEY = 'your_csrf_secret_key'
     SESSION_COOKIE_DOMAIN = False
+    DEBUG = True  
+    JWT_COOKIE_CSRF_PROTECT = False
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'images', 'uploads')
+    MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # Max file size: 16MB
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
 
 ISSUE_STATUS = ['Open', 'In Progress', 'Resolved', 'Closed']
 ORDER_STATUS = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']

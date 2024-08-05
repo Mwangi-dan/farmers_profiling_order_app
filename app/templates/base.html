@@ -71,8 +71,8 @@
         <li class="nav-item dropdown pe-3">
 
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
-            <img src="{{ url_for('static', filename='img/profile-img.jpg')}}" alt="Profile" class="rounded-circle">
-            <span class="d-none d-md-block dropdown-toggle ps-2">{{ current_user.name }}</span>
+            <img src="{{ url_for('static', filename='images/uploads/' + (current_user.photo or 'default.jpg')) }}" alt="Profile" class="rounded-circle">
+            <span class="d-none d-md-block dropdown-toggle ps-2">{{ current_user.name }}_{{current_user.lastname }}</span>
           </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
@@ -166,9 +166,9 @@
       </li><!-- End Issues Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link {% if not active_endpoint == 'admin.get_products' %}collapsed{% endif %}" href="#">
-          <i class="bi bi-box"></i>
-          <span>Products</span>
+        <a class="nav-link {% if not active_endpoint == 'admin.get_products' %}collapsed{% endif %}" href="{{ url_for('admin.report_generation') }}">
+          <i class="bi bi-pass"></i>
+          <span>Reports</span>
         </a>
 
   </aside><!-- End Sidebar-->

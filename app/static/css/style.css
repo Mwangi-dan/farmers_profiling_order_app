@@ -250,6 +250,10 @@ h6 {
   padding: 0 20px 20px 20px;
 }
 
+.ps-3:hover {
+  background-color: #f6f9ff;
+}
+
 .card-img-overlay {
   background-color: rgba(255, 255, 255, 0.6);
 }

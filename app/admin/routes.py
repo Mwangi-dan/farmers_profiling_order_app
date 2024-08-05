@@ -1,58 +1,32 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, make_response, send_file
+import io
+from flask import Blueprint, g, render_template, request, redirect, url_for, flash, jsonify, make_response, send_file
 from flask_jwt_extended import (
     create_access_token, create_refresh_token, set_access_cookies, 
     jwt_required, get_jwt_identity, set_refresh_cookies, verify_jwt_in_request
 )
 from flask_wtf.csrf import CSRFProtect
-from werkzeug.security import check_password_hash
-from app.models import User, Issue, Order
+from werkzeug.security import check_password_hash, generate_password_hash
+from app.models import User, Issue, Order, Admin, Farmer, Supplier
 import csv
 from io import StringIO, BytesIO
 from app import db
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
-from config import ISSUE_STATUS, ORDER_STATUS
-from app.forms import RegistrationForm, LoginForm
+from config import ISSUE_STATUS, ORDER_STATUS, allowed_file
+from app.forms import (
+    LoginForm, EditProfileForm, ReportGenerationForm,
+    EditUserForm ,ChangePasswordForm
+    )
 from datetime import datetime, timedelta
+from flask_uploads import UploadSet, IMAGES
+from werkzeug.utils import secure_filename
+from flask import current_app
+
+import os
 
 admin = Blueprint('admin', __name__)
 
 csrf = CSRFProtect()
-
-
-
-@admin.route('/login', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(telephone=form.telephone.data).first()
-        if user and check_password_hash(user.password_hash, form.password.data):
-            access_token = create_access_token(identity={'telephone': user.telephone})
-            refresh_token = create_refresh_token(identity={'telephone': user.telephone})
-            response = make_response(redirect(url_for('admin.dashboard')))
-            set_access_cookies(response, access_token)
-            set_refresh_cookies(response, refresh_token)
-            flash('You have been logged in!', 'success')
-            return response
-        else:
-            flash('Login Unsuccessful. Please check telephone and password', 'danger')
-    return render_template('login.html', form=form)
-
-
-@admin.route('/register', methods=['GET', 'POST'])
-def signup():
-    if request.method == 'POST':
-        name = request.form['name']
-        telephone = request.form['telephone']
-        password = request.form['password']
-        location = request.form['location']
-        new_user = User(name=name, telephone=telephone, location=location)
-        new_user.set_password(password)
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('admin.login'))
-    return render_template('signup.html')
-
 
 @admin.before_request
 def before_request():
@@ -138,29 +112,32 @@ def add_user():
         telephone = request.form['telephone']
         password = request.form['password']
         location = request.form['location']
-        new_user = User(name=name, telephone=telephone, location=location)
+        role = request.form['role']
+        new_user = role.capitalize()(name=name, telephone=telephone, location=location)
         new_user.set_password(password)
         db.session.add(new_user)
         db.session.commit()
         return redirect(url_for('admin.get_users'))
     return render_template('add_user.html')
 
-@admin.route('/edit_user/<int:user_id>', methods=['GET', 'POST'])
+@admin.route('/edit_user/<int:user_id>', methods=['POST'])
 @jwt_required()
 def edit_user(user_id):
     user = User.query.get_or_404(user_id)
-    print("Route accessed")
-    if request.method == 'POST':
-        print("Form submitted")
-        user.name = request.form['name']
-        user.gender = request.form['gender']
-        user.telephone = request.form['telephone']
-        user.location = request.form['location']
-        print(f"Updated data: Name={user.name}, Gender={user.gender}, Telephone={user.telephone}, Location={user.location}")
+    form = EditUserForm(obj=user)
+
+    if form.validate_on_submit():
+        user.name = form.name.data
+        user.gender = form.gender.data
+        user.telephone = form.telephone.data
+        user.location = form.location.data
+
         db.session.commit()
         flash('User updated successfully!', 'success')
         return redirect(url_for('admin.get_users'))
-    return render_template('edit_users.html', user=user)
+
+    flash('Error updating user.', 'danger')
+    return redirect(url_for('admin.get_users'))
 
 @admin.route('/users/delete/<int:user_id>', methods=['POST'])
 @jwt_required()
@@ -224,40 +201,88 @@ def api_get_issues():
 @admin.route('/profile/<int:user_id>', methods=['GET', 'POST'])
 @jwt_required()
 def profile(user_id):
-    active = active
     current_user_identity = get_jwt_identity()
     current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+    form = EditProfileForm(obj=current_user)
     user = User.query.get_or_404(user_id)
-    return render_template('profile.html', user=user, current_user=current_user, active=active)
+    return render_template('profile.html', user=user, current_user=current_user, form=form)
 
 
 # Edit profile route
-@admin.route('/edit_profile/<int:user_id>', methods=['POST'])
-@jwt_required()
-# @csrf.protect()
-def edit_profile(user_id):
-    csrf.generate_csrf()
-    user = User.query.get_or_404(user_id)
-    
-    if 'photo' in request.files:
-        photo = request.files['photo']
-        if photo.filename != '':
-            user.photo = photo.read()  # Read and store the binary data
-    
-    user.name = request.form['name']
-    user.telephone = request.form['telephone']
-    user.location = request.form['location']
-    user.group_name = request.form['group_name']
-    user.land_size = request.form.get('land_size', type=float)
-    user.crop = request.form['crop']
-    user.last_yield = request.form.get('last_yield', type=float)
-    user.bank_account = request.form.get('bank_account') == 'True'
-    user.gender = request.form['gender']
-    user.date_of_birth = request.form.get('date_of_birth', type=lambda d: datetime.strptime(d, '%Y-%m-%d'))
+photos = UploadSet('photos', IMAGES)
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB
 
-    db.session.commit()
-    flash('Profile updated successfully!', 'success')
-    return redirect(url_for('admin.profile', user_id=user.id))
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+@admin.route('/edit_profile/<int:user_id>', methods=['GET', 'POST'])
+@jwt_required()
+def edit_profile(user_id):
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+
+    user = User.query.get_or_404(user_id)
+    form = EditProfileForm(obj=user)
+    
+    if form.validate_on_submit():
+        user.name = form.name.data
+        user.email = form.email.data
+        user.gender = form.gender.data
+        user.telephone = form.telephone.data
+        user.location = form.location.data
+        user.date_of_birth = form.date_of_birth.data
+        
+        if 'photo' in request.files:
+            photo = request.files['photo']
+            if photo and allowed_file(photo.filename):
+                filename = secure_filename(photo.filename)
+                upload_folder = current_app.config['UPLOAD_FOLDER']
+                filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+
+                if user.photo and user.photo != 'default.jpg':
+                    old_photo_path = os.path.join(upload_folder, user.photo)
+                    if os.path.exists(old_photo_path):
+                        os.remove(old_photo_path)
+
+                photo.save(filepath)
+                user.photo = filename  # Save the filename to the database
+            else:
+                flash('File type not allowed. Allowed types are png, jpg, jpeg', 'danger')
+                return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user))
+        else:
+            flash('No file uploaded or file size exceeds limit.', 'danger')
+            return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user))
+        
+        db.session.commit()
+        flash('Profile updated successfully!', 'success-profile')
+        return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user))
+    
+    return render_template('profile.html', form=form, user=user, current_user=user)
+
+
+
+@admin.route('/change_password', methods=['GET', 'POST'])
+@jwt_required()
+def change_password():
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+    user = current_user
+    form = ChangePasswordForm(obj=user)
+    if form.validate_on_submit():
+        
+        if check_password_hash(user.password_hash, form.current_password.data):
+            user.password_hash = generate_password_hash(form.new_password.data)
+            db.session.commit()
+            flash('Your password has been updated!', 'success')
+            return redirect(url_for('admin.profile', user_id=user.id))
+        else:
+            flash('Current password is incorrect.', 'danger')
+    return render_template('change_password.html', form=form, current_user=current_user, user=user)
+
+
+
 
 @admin.route('/api/orders', methods=['GET'])
 @jwt_required()
@@ -441,8 +466,58 @@ def export_orders_pdf():
     return send_file(buffer, as_attachment=True, download_name='orders_report.pdf', mimetype='application/pdf')
 
 
+@admin.route('/report_generation', methods=['GET', 'POST'])
+@jwt_required()
+def report_generation():
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+    form = ReportGenerationForm()
+    if form.validate_on_submit():
+        report_type = form.report_type.data
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+
+        # Generate the report based on the selected criteria
+        report_data = generate_report(report_type, start_date, end_date)
+
+        # Optionally, provide the report for download as a CSV file
+        output = io.StringIO()
+        writer = csv.writer(output)
+        if report_type == 'users':
+            writer.writerow(['ID', 'Name', 'Email', 'Telephone', 'Location', 'Date of Birth'])
+            for user in report_data:
+                writer.writerow([user.id, user.name, user.email, user.telephone, user.location, user.date_of_birth])
+        elif report_type == 'orders':
+            writer.writerow(['ID', 'User', 'Product', 'Price', 'Status'])
+            for order in report_data:
+                writer.writerow([order.id, order.user_id, order.product_name, order.price, order.status])
+        elif report_type == 'issues':
+            writer.writerow(['ID', 'User', 'Issue', 'Status', 'Created At'])
+            for issue in report_data:
+                writer.writerow([issue.id, issue.user_id, issue.description, issue.status, issue.created_at])
+
+        response = make_response(output.getvalue())
+        response.headers['Content-Disposition'] = 'attachment; filename=report.csv'
+        response.headers['Content-type'] = 'text/csv'
+        return response
+
+    return render_template('report_generation.html', form=form, current_user=current_user)
+
+
+def generate_report(report_type, start_date, end_date):
+    if report_type == 'users':
+        return User.query.filter(User.created_at.between(start_date, end_date)).all()
+    elif report_type == 'orders':
+        return Order.query.filter(Order.created_at.between(start_date, end_date)).all()
+    elif report_type == 'issues':
+        return Issue.query.filter(Issue.created_at.between(start_date, end_date)).all()
+    return []
+
+
 @admin.route('/logout')
 def logout():
     response = make_response(redirect(url_for('admin.login')))
     response.set_cookie('access_token', '', expires=0)
     return response
+
+

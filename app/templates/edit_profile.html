@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <h2 class="text-center">Edit Profile</h2>
+            <form method="POST" action="{{ url_for('admin.edit_profile', user_id=user.id) }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div class="mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.email.label(class="form-label") }}
+                    {{ form.email(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.gender.label(class="form-label") }}
+                    <select name="{{ form.gender.name }}" id="{{ form.gender.id }}" class="form-control">
+                        <option value="" disabled selected>Select Gender</option>
+                        {% for value, label in form.gender.choices %}
+                            <option value="{{ value }}" {% if form.gender.data == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    {{ form.telephone.label(class="form-label") }}
+                    {{ form.telephone(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.location.label(class="form-label") }}
+                    {{ form.location(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.date_of_birth.label(class="form-label") }}
+                    {{ form.date_of_birth(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    <label for="profileImage" class="form-label">Profile Image</label>
+                    <div class="mb-3">
+                        {% if user.photo %}
+                            <img src="{{ url_for('static', filename='uploads/profile_pics/' ~ user.photo) }}" alt="Profile Image" class="img-thumbnail" width="150">
+                        {% endif %}
+                    </div>
+                    {{ form.photo.label(class="form-label") }}
+                    {{ form.photo(class="form-control") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

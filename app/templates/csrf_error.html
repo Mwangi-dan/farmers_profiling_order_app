@@ -1,15 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSRF Error</title>
+    <title>CSRF Token Error</title>
+    <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
 </head>
+
 <body>
-    <h1>CSRF Error</h1>
-    <p><b>Error:</b> {{ reason }}</p>
-    <p>CSRF token is missing or invalid. Please try again.</p>
-    <a href="{{ url_for('auth.signup') }}">Go back to sign up</a>
-    
+    <div class="container mt-5">
+        <div class="alert alert-danger" role="alert">
+            <h4 class="alert-heading">CSRF Token Missing or Invalid</h4>
+            <p>{{ reason }}</p>
+            <hr>
+            <p class="mb-0">Please try submitting the form again. If the issue persists, contact support.</p>
+        </div>
+    </div>
 </body>
+
 </html>

@@ -3,11 +3,11 @@
 {% block content %}
 <main id="main" class="main">
   <div class="pagetitle">
-    <h1>Issues</h1>
+    <h1>Users</h1>
     <nav>
       <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard' )}}">Home</a></li>
-        <li class="breadcrumb-item active">Issues</li>
+        <li class="breadcrumb-item active">Users</li>
       </ol>
     </nav>
   </div><!-- End Page Title -->
@@ -53,10 +53,10 @@
 
 <!-- Edit User Modal -->
 <div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-  <input type="hidden" name="csrf_token" value="{{csrf_token()}}"/> 
   <div class="modal-dialog">
     <div class="modal-content">
-      <form>
+      <form method="POST" id="editUserForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="modal-header">
           <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -92,8 +92,6 @@
   </div>
 </div>
 </main>
-
-
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
