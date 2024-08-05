@@ -19,7 +19,7 @@ class User(db.Model):
     longitude = db.Column(db.Float) 
     gender = db.Column(db.String(10))
     date_of_birth = db.Column(db.Date)
-    password_hash = db.Column(db.String(128), nullable=False)
+    password_hash = db.Column(db.String(200), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
     updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
 
