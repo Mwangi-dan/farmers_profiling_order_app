@@ -38,7 +38,7 @@
 
               <img src="{{ url_for('static', filename='images/uploads/' + user.photo) }}" alt="Profile" class="rounded-circle">
               <h2>{{ user.name }}</h2>
-              <h3>{{ user.role }}</h3>
+              <h3>{{ user.role.capitalize() }}</h3>
               <div class="social-links mt-2">
                 <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
                 <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>

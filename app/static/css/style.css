@@ -403,6 +403,11 @@ h6 {
   padding: 0 20px;
 }
 
+.logo-img {
+  max-width: 150px;
+  margin-bottom: 20px;
+}
+
 @media (max-width: 1199px) {
   .header .search-bar {
     position: fixed;

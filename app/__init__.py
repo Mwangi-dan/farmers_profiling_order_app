@@ -77,17 +77,17 @@ def create_app():
 
     from .admin.routes import admin as admin_blueprint
     app.register_blueprint(admin_blueprint, url_prefix='/admin')
-
-    '''
+    
     from .ussd.routes import ussd as ussd_blueprint
     app.register_blueprint(ussd_blueprint, url_prefix='/ussd')
-    '''
+
+
     with app.app_context():
         db.create_all()
 
     return app
 
 
-# if __name__ == '__main__':
-#     app = create_app()
-#     app.run(debug=True, port=5000)
+if __name__ == '__main__':
+    app = create_app()
+    app.run(port=5000)
