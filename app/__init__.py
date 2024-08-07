@@ -77,10 +77,10 @@ def create_app():
 
     from .admin.routes import admin as admin_blueprint
     app.register_blueprint(admin_blueprint, url_prefix='/admin')
-    
+
     from .ussd.routes import ussd as ussd_blueprint
     app.register_blueprint(ussd_blueprint, url_prefix='/ussd')
-
+    print("Passed ussd config")
 
     with app.app_context():
         db.create_all()

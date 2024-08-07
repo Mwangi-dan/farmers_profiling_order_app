@@ -4,7 +4,8 @@ from .utils import process_ussd_input
 ussd = Blueprint('ussd', __name__)
 
 @ussd.route('/ussd', methods=['POST'])
-def ussd_calls():
+def us():
+    
     session_id = request.form.get('sessionId')
     service_code = request.form.get('serviceCode')
     phone_number = request.form.get('phoneNumber')

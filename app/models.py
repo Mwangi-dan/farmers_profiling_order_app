@@ -10,7 +10,7 @@ class User(db.Model):
     name = db.Column(db.String(100), nullable=False)
     lastname = db.Column(db.String(100))
     photo = db.Column(db.String(150), default='default.jpg')
-    email = db.Column(db.String(120), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True)
     telephone = db.Column(db.String(20), unique=True, nullable=False)
     nationality = db.Column(db.String(100)) 
     location = db.Column(db.String(100), nullable=False)

@@ -10,7 +10,7 @@ from app.models import User
 class RegistrationForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(min=2, max=50)])
     lastname = StringField('Last Name', validators=[DataRequired(), Length(min=2, max=50)])
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    email = StringField('Email', validators=[Optional(), Email()])
     telephone = StringField('Telephone', validators=[DataRequired(), Length(min=10, max=15)])
     nationality = StringField('Nationality', validators=[DataRequired(), Length(min=2, max=100)])
     location = StringField('Location', validators=[DataRequired(), Length(min=2, max=100)])
