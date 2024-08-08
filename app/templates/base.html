@@ -157,6 +157,14 @@
         </a>
       </li><!-- End Orders Page Nav -->
 
+
+      <li class="nav-item">
+        <a class="nav-link {% if not active_endpoint == 'admin.admin_suppliers' %}collapsed{% endif %}" href="{{ url_for('admin.admin_suppliers') }}">
+          <i class="bi bi-people-fill"></i>
+          <span>Suppliers</span>
+        </a>
+      </li><!-- End Suppliers Page Nav -->
+
       
       <li class="nav-item">
         <a class="nav-link {% if not active_endpoint == 'admin.get_issues' %}collapsed{% endif %}" href="{{ url_for('admin.get_issues') }}">

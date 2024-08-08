@@ -6,7 +6,7 @@ from flask_jwt_extended import (
 )
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import check_password_hash, generate_password_hash
-from app.models import User, Issue, Order, Admin, Farmer, Supplier
+from app.models import User, Issue, Order, Admin, Farmer, Supplier, Product
 import csv
 from io import StringIO, BytesIO
 from app import db
@@ -21,6 +21,7 @@ from datetime import datetime, timedelta
 from flask_uploads import UploadSet, IMAGES
 from werkzeug.utils import secure_filename
 from flask import current_app
+from app.utils.image_helper import save_image
 
 import os
 
@@ -120,7 +121,7 @@ def add_user():
         return redirect(url_for('admin.get_users'))
     return render_template('add_user.html')
 
-@admin.route('/edit_user/<int:user_id>', methods=['POST'])
+@admin.route('/edit_user/<int:user_id>', methods=['POST', 'GET'])
 @jwt_required()
 def edit_user(user_id):
     user = User.query.get_or_404(user_id)
@@ -520,4 +521,103 @@ def logout():
     response.set_cookie('access_token', '', expires=0)
     return response
 
+def current_user():
+    current_user_identity = get_jwt_identity()
+    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
+    return current_user
 
+############### SUPPLIERS ####################
+
+@admin.route('/suppliers', methods=['GET'])
+@jwt_required()
+def admin_suppliers():
+    suppliers = Supplier.query.all()
+    return render_template('suppliers/suppliers.html', suppliers=suppliers, current_user=current_user())
+
+@admin.route('/suppliers/new', methods=['GET'])
+def new_supplier():
+    return render_template('create_supplier.html')
+
+@admin.route('/suppliers/new', methods=['POST'])
+def create_supplier():
+    data = request.form
+    first_name = data.get('fname')
+    last_name = data.get('lname')
+    nin = data.get('nin')
+    gender= data.get('gender')
+    company_name = data.get('company_name')
+    contact_person = data.get('contact_person')
+    telephone = data.get('telephone')
+    country = data.get('country')
+    email = data.get('email')
+    location = data.get('location')
+    image = request.files.get('image')
+    image_url = save_image(image) if image else None
+
+
+    try:
+        supplier = Supplier.query.filter_by(telephone=telephone, nin=nin, email=email).first()
+        if supplier:
+            flash('Supplier already exists!', 'danger')
+            return redirect(url_for('admin.admin_suppliers'))
+        else:
+            new_supplier = Supplier(
+            name=first_name,
+            lastname=last_name,
+            nin=nin,
+            gender=gender,
+            company_name=company_name,
+            contact_person=contact_person,
+            telephone=telephone,
+            email=email,
+            nationality=country,
+            location=location,
+            photo=image_url,
+            role='supplier',
+            password_hash=generate_password_hash('password')
+             )
+            db.session.add(new_supplier)
+            db.session.commit()
+            flash('Supplier created successfully!', 'success-supplier')
+    except Exception as e:
+        flash('Error creating supplier!', 'danger-supplier')
+        return redirect(url_for('admin.admin_suppliers'))
+    
+    return redirect(url_for('admin.admin_suppliers'))
+    
+
+@admin.route('/suppliers/edit/<int:id>', methods=['GET'])
+def edit_supplier(id):
+    supplier = Supplier.query.get_or_404(id)
+    return render_template('suppliers/edit_supplier.html', supplier=supplier, current_user=current_user())
+
+@admin.route('/suppliers/edit/<int:id>', methods=['POST'])
+@jwt_required()
+def update_supplier(id):
+    supplier = Supplier.query.get_or_404(id)
+    data = request.form
+    image = request.files.get('image')
+    image_url = save_image(image) if image else supplier.photo
+
+    supplier.name = data.get('name')
+    supplier.lastname = data.get('lname')
+    supplier.nin = data.get('nin')
+    supplier.gender = data.get('gender')
+    supplier.company_name = data.get('company_name')
+    supplier.contact_person = data.get('contact_person')
+    supplier.telephone = data.get('telephone')
+    supplier.email = data.get('email')
+    supplier.location = data.get('location')
+    supplier.photo = image_url
+
+    db.session.commit()
+    flash('Supplier updated successfully!', 'success-supplier')
+    return redirect(url_for('admin.edit_supplier', id=supplier.id))
+
+@admin.route('/suppliers/delete/<int:id>', methods=['POST'])
+def delete_supplier(id):
+    supplier = Supplier.query.get_or_404(id)
+    db.session.delete(supplier)
+    db.session.commit()
+    flash('Supplier deleted successfully!', 'success-supplier')
+    return redirect(url_for('admin.admin_suppliers'))

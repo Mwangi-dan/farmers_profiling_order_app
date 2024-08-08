@@ -1,0 +1,145 @@
+{% extends 'base.html'%}
+
+
+{% block content %}
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Suppliers</h1>
+        <nav>
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard' )}}">Home</a></li>
+            <li class="breadcrumb-item active">Suppliers</li>
+          </ol>
+        </nav>
+      </div><!-- End Page Title -->
+      <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="container mt-4">
+            {% for category, message in messages %}
+            {% if 'supplier' in category %}
+                <div class="alert alert-{{ category.split('-')[0] }} alert-dismissible fade show profile-flash" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Suppliers</h5>
+                <p>View all suppliers registered in the System</p>
+                <button type="button" class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addSupplierModal">Add Supplier</button>
+                <table class="table datatable">
+                    <thead>
+                        <tr>
+                            <th><b>Name</b></th>
+                            <th>Telephone</th>
+                            <th>Location</th>
+                            <th data-type="date" data-format="YYYY/DD/MM">Joined</th>
+                            <th>Actions</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for supplier in suppliers %}
+                        <tr>
+                            <td><a href="{{ url_for('admin.edit_supplier', id=supplier.id) }}">{{ supplier.name }}</a></td>
+                            <td>{{ supplier.telephone }}</td>
+                            <td>{{ supplier.location }}</td>
+                            <td>{{ supplier.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <a href="{{ url_for('admin.edit_supplier', id=supplier.id) }}" class="btn btn-primary mb-3">Edit Supplier</a>
+                            </td>
+                            <td>
+                            <form method="POST" action="{{ url_for('admin.delete_supplier', id=supplier.id) }}" onsubmit="return confirm('Are you sure you want to delete this user?');">
+                                <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
+                                <div class="text-center">
+                                    <button type="submit" class="btn btn-danger">Delete User</button>
+                                </form><!-- End Deletion Form -->
+                                </div>
+                            </td>
+                            
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add Supplier Modal -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="add-supplier-form" method="POST" action="{{ url_for('admin.create_supplier') }}" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="modal-header">
+            <h5 class="modal-title" id="addSupplierModalLabel">Add Supplier</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="add-name" class="form-label">First Name</label>
+              <input type="text" class="form-control" id="add-fname" name="fname" required>
+            </div>
+            <div class="mb-3">
+              <label for="add-name" class="form-label">Last Name</label>
+              <input type="text" class="form-control" id="add-lname" name="lname" required>
+            </div>
+            <div class="mb-3">
+              <label for="add-name" class="form-label">ID No</label>
+              <input type="text" class="form-control" id="add-nin" name="nin" required>
+            </div>
+            <div class="mb-3">
+                <label for="edit-gender" class="form-label">Gender</label>
+                <select class="form-control" id="edit-gender" name="gender" required>
+                <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+            </div>
+            <div class="mb-3">
+              <label for="add-name" class="form-label">Company</label>
+              <input type="text" class="form-control" id="add-company" name="company_name">
+            </div>
+            <div class="mb-3">
+              <label for="add-name" class="form-label">Contact Person</label>
+              <input type="text" class="form-control" id="add-contact" name="contact_person">
+            </div>
+            <div class="mb-3">
+              <label for="add-telephone" class="form-label">Telephone</label>
+              <input type="text" class="form-control" id="add-telephone" name="telephone" required>
+            </div>
+            <div class="mb-3">
+              <label for="add-email" class="form-label">Email</label>
+              <input type="text" class="form-control" id="add-email" name="email">
+            </div>
+            <div class="mb-3">
+              <label for="add-country" class="form-label">Country</label>
+              <input type="text" class="form-control" id="add-country" name="country" required>
+            </div>
+            <div class="mb-3">
+              <label for="add-location" class="form-label">County/Province</label>
+              <input type="text" class="form-control" id="add-location" name="location" required>
+            </div>
+            <div class="mb-3">
+              <label for="add-image" class="form-label">Image</label>
+              <input type="file" class="form-control" id="add-image" name="image">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Add Supplier</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+  
+
+{%endblock %}

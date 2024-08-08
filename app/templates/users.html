@@ -12,112 +12,170 @@
     </nav>
   </div><!-- End Page Title -->
   <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Users</h5>
-        <p>View all users registered in the System</p>
+    <div class="card-body">
+      <h5 class="card-title">Users</h5>
+      <p>View all users registered in the System</p>
 
-        <!-- Table with stripped rows -->
-        <table class="table datatable">
-          <thead>
-            <tr>
-              <th><b>Name</b></th>
-              <th>Gender</th>
-              <th>Telephone</th>
-              <th>Location</th>
-              <th data-type="date" data-format="YYYY/DD/MM">Joined</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for user in users %}
-            <tr>
-              <td><a href="{{ url_for('admin.view_user', user_id=user.id) }}">{{ user.name }}</a></td>
-              <td>{{ user.gender }}</td>
-              <td>{{ user.telephone }}</td>
-              <td>{{ user.location }}</td>
-              <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-              <td>
-                <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#editUserModal" data-id="{{ user.id }}" data-name="{{ user.name }}" data-gender="{{ user.gender }}" data-telephone="{{ user.telephone }}" data-location="{{ user.location }}">Edit User</a>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-        <!-- End Table with stripped rows -->
+      <!-- Filter Button -->
+      <button type="button" class="btn btn-info mb-3" data-bs-toggle="modal" data-bs-target="#filterModal">Filter</button>
 
-      </div>
+      <!-- Active Filters -->
+      <div id="active-filters" class="mb-3"></div>
+
+      <!-- Table with stripped rows -->
+      <table class="table datatable" id="users-table">
+        <thead>
+          <tr>
+            <th><b>Name</b></th>
+            <th>Role</th>
+            <th>Gender</th>
+            <th>Telephone</th>
+            <th>Location</th>
+            <th data-type="date" data-format="YYYY/DD/MM">Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td><a href="{{ url_for('admin.view_user', user_id=user.id) }}">{{ user.name }}</a></td>
+            <td>{{ user.role.capitalize() }}</td>
+            <td>{{ user.gender }}</td>
+            <td>{{ user.telephone }}</td>
+            <td>{{ user.location }}</td>
+            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+            <td>
+              <a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="btn btn-primary mb-3">Edit User</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <!-- End Table with stripped rows -->
+
     </div>
-
   </div>
 
-
-<!-- Edit User Modal -->
-<div class="modal fade" id="editUserModal" tabindex="-1" aria-labelledby="editUserModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <form method="POST" id="editUserForm">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+  <!-- Filter Modal -->
+  <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="editUserModalLabel">Edit User</h5>
+          <h5 class="modal-title" id="filterModalLabel">Filter Users</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <input type="hidden" id="edit-user-id" name="user_id">
           <div class="mb-3">
-            <label for="edit-name" class="form-label">Name</label>
-            <input type="text" class="form-control" id="edit-name" name="name" required>
+            <label for="filter-role" class="form-label">Filter by Role:</label>
+            <select class="form-control" id="filter-role">
+              <option value="">All</option>
+              <option value="admin">Admin</option>
+              <option value="farmer">Farmer</option>
+              <option value="supplier">Supplier</option>
+            </select>
           </div>
           <div class="mb-3">
-            <label for="edit-gender" class="form-label">Gender</label>
-            <select class="form-control" id="edit-gender" name="gender" required>
+            <label for="filter-gender" class="form-label">Filter by Gender:</label>
+            <select class="form-control" id="filter-gender">
+              <option value="">All</option>
               <option value="Male">Male</option>
               <option value="Female">Female</option>
             </select>
           </div>
           <div class="mb-3">
-            <label for="edit-telephone" class="form-label">Telephone</label>
-            <input type="text" class="form-control" id="edit-telephone" name="telephone" required>
-          </div>
-          <div class="mb-3">
-            <label for="edit-location" class="form-label">Location</label>
-            <input type="text" class="form-control" id="edit-location" name="location" required>
+            <label for="filter-date" class="form-label">Filter by Date Joined:</label>
+            <input type="date" class="form-control" id="filter-date">
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-          <button type="submit" class="btn btn-primary">Save Changes</button>
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal" onclick="applyFilters()">Apply Filters</button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
-</div>
-</main>
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var editUserModal = document.getElementById('editUserModal');
-    editUserModal.addEventListener('show.bs.modal', function(event) {
-      var button = event.relatedTarget;
-      var userId = button.getAttribute('data-id');
-      var userName = button.getAttribute('data-name');
-      var userGender = button.getAttribute('data-gender');
-      var userTelephone = button.getAttribute('data-telephone');
-      var userLocation = button.getAttribute('data-location');
+      const roleFilter = document.getElementById('filter-role');
+      const genderFilter = document.getElementById('filter-gender');
+      const dateFilter = document.getElementById('filter-date');
+      const table = document.getElementById('users-table');
+      const rows = table.getElementsByTagName('tr');
+      const activeFiltersDiv = document.getElementById('active-filters');
 
-      var modalTitle = editUserModal.querySelector('.modal-title');
-      var modalBodyInputId = editUserModal.querySelector('#edit-user-id');
-      var modalBodyInputName = editUserModal.querySelector('#edit-name');
-      var modalBodyInputGender = editUserModal.querySelector('#edit-gender');
-      var modalBodyInputTelephone = editUserModal.querySelector('#edit-telephone');
-      var modalBodyInputLocation = editUserModal.querySelector('#edit-location');
+      window.applyFilters = function() {
+          const role = roleFilter.value.toLowerCase();
+          const gender = genderFilter.value.toLowerCase();
+          const date = dateFilter.value;
 
-      modalTitle.textContent = 'Edit User: ' + userName;
-      modalBodyInputId.value = userId;
-      modalBodyInputName.value = userName;
-      modalBodyInputGender.value = userGender;
-      modalBodyInputTelephone.value = userTelephone;
-      modalBodyInputLocation.value = userLocation;
-    });
+          updateActiveFilters(role, gender, date);
+
+          for (let i = 1; i < rows.length; i++) {
+              let roleMatch = true;
+              let genderMatch = true;
+              let dateMatch = true;
+
+              const cells = rows[i].getElementsByTagName('td');
+              const rowRole = cells[1].innerText.toLowerCase();
+              const rowGender = cells[2].innerText.toLowerCase();
+              const rowDate = cells[5].innerText;
+
+              if (role && rowRole !== role) {
+                  roleMatch = false;
+              }
+
+              if (gender && rowGender !== gender) {
+                  genderMatch = false;
+              }
+
+              if (date && rowDate !== date) {
+                  dateMatch = false;
+              }
+
+              if (roleMatch && genderMatch && dateMatch) {
+                  rows[i].style.display = '';
+              } else {
+                  rows[i].style.display = 'none';
+              }
+          }
+      }
+
+      function updateActiveFilters(role, gender, date) {
+          activeFiltersDiv.innerHTML = '';
+
+          if (role) {
+              const roleFilterTag = createFilterTag('Role', role, () => {
+                  roleFilter.value = '';
+                  applyFilters();
+              });
+              activeFiltersDiv.appendChild(roleFilterTag);
+          }
+
+          if (gender) {
+              const genderFilterTag = createFilterTag('Gender', gender, () => {
+                  genderFilter.value = '';
+                  applyFilters();
+              });
+              activeFiltersDiv.appendChild(genderFilterTag);
+          }
+
+          if (date) {
+              const dateFilterTag = createFilterTag('Date Joined', date, () => {
+                  dateFilter.value = '';
+                  applyFilters();
+              });
+              activeFiltersDiv.appendChild(dateFilterTag);
+          }
+      }
+
+      function createFilterTag(label, value, onClick) {
+          const filterTag = document.createElement('div');
+          filterTag.className = 'badge bg-primary text-white me-2';
+          filterTag.innerHTML = `${label}: ${value} <span class="ms-2" style="cursor: pointer;">&times;</span>`;
+          filterTag.querySelector('span').onclick = onClick;
+          return filterTag;
+      }
   });
 </script>
 {% endblock %}

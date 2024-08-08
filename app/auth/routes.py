@@ -114,7 +114,7 @@ def signup_supplier():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(telephone=form.telephone.data).first()
+        user = User.query.filter_by(telephone=form.telephone.data, role='admin').first()
         if user and check_password_hash(user.password_hash, form.password.data):
             access_token = create_access_token(identity={'telephone': user.telephone})
             refresh_token = create_refresh_token(identity={'telephone': user.telephone})

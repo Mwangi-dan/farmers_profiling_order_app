@@ -21,6 +21,7 @@ class Config:
     JWT_COOKIE_CSRF_PROTECT = False
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'images', 'uploads')
+    PRODUCT_UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'images', 'product_uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # Max file size: 16MB
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 

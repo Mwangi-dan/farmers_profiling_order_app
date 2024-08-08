@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_marshmallow import Marshmallow
 
 db = SQLAlchemy()
+ma = Marshmallow()
 
 class User(db.Model):
     __tablename__ = 'user' 
@@ -98,7 +100,8 @@ class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('orders', lazy=True))
-    product_name = db.Column(db.String(100), nullable=False)
+    product_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    product_name = db.Column(db.String(150), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(50), default='Pending')
@@ -115,6 +118,17 @@ class Order(db.Model):
             'status': self.status,
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
+        }
+    
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'product_id': self.product_id,
+            'quantity': self.quantity,
+            'price': self.price,
+            'status': self.status
         }
     
 
@@ -151,10 +165,40 @@ class Supplier(User):
     id = db.Column(db.Integer, db.ForeignKey('user.id'), primary_key=True)
     nin = db.Column(db.String(20), unique=True, nullable=False)
     company_name = db.Column(db.String(100))
-    products = db.Column(db.String(255))  # List of products or services provided
+    products = db.relationship('Product', backref='supplier', lazy=True)
     contact_person = db.Column(db.String(100))
 
     __mapper_args__ = {
         'polymorphic_identity': 'supplier',
         'inherit_condition': (id == User.id)
     }
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'photo': self.photo,
+            'products': [product.to_dict() for product in self.products]
+        }
+
+
+class Product(db.Model):
+    __tablename__ = 'product'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.String(200), nullable=True)
+    category = db.Column(db.String(100), nullable=False)
+    price = db.Column(db.Float, nullable=False)
+    image_url = db.Column(db.String(200), nullable=True)
+    supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'), nullable=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'category': self.category,
+            'price': self.price,
+            'image_url': self.image_url,
+            'supplier': self.supplier.to_dict() if self.supplier else None
+        }

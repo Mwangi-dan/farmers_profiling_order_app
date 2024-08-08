@@ -23,12 +23,6 @@
 
               <img src="{{ url_for('static', filename='images/uploads/' + ('default.jpg' if user.photo == None else user.photo)) }}" alt="Profile" class="rounded-circle">
               <h2>{{ user.name }}</h2>
-              <div class="social-links mt-2">
-                <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>
-                <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>
-                <a href="#" class="instagram"><i class="bi bi-instagram"></i></a>
-                <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>
-              </div>
             </div>
           </div>
 
@@ -52,14 +46,14 @@
               </ul>
               <div class="tab-content pt-2">
                 <div class="tab-pane fade show active profile-overview" id="profile-overview">
-                  <h5 class="card-title">About</h5>
-                  <p class="small fst-italic">{{ user.about }}</p>
+                  <h5 class="card-title">Role</h5>
+                  <h6>{{ user.role.capitalize() }}</h6>
         
                   <h5 class="card-title">Profile Details</h5>
         
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Full Name</div>
-                    <div class="col-lg-9 col-md-8">{{ user.name }}</div>
+                    <div class="col-lg-9 col-md-8">{{ user.name }} {{ user.lastname }}</div>
                   </div>
         
                   <div class="row">
@@ -71,15 +65,26 @@
                     <div class="col-lg-3 col-md-4 label">Location</div>
                     <div class="col-lg-9 col-md-8">{{ user.location }}</div>
                   </div>
+
+                  <div class="row">
+                    <div class="col-lg-3 col-md-4 label">Gelocation</div>
+                    <div class="col-lg-9 col-md-8">
+                        {% if user.latitude and user.longitude %}
+                            {{ user.latitude }}, {{ user.longitude }}
+                        {% else %}
+                            Not Available.
+                        {% endif %}
+                    </div>
+                  </div>
         
                   <div class="row">
                     <div class="col-lg-3 col-md-4 label">Role</div>
                     {% if user.role == 'admin' %}
-                    <div class="col-lg-9 col-md-7">{{ user.role }}</div>
+                    <div class="col-lg-9 col-md-7">{{ user.role.capitalize() }}</div>
                     {% elif user.role == 'farmer' %}
-                    <div class="col-lg-9 col-md-8">{{ user.role }}</div>
+                    <div class="col-lg-9 col-md-8">{{ user.role.capitalize() }}</div>
                     {% elif user.role == 'supplier' %}
-                    <div class="col-lg-9 col-md-8">{{ user.role }}</div>
+                    <div class="col-lg-9 col-md-6">{{ user.role.capitalize() }}</div>
                     {% endif %}
                   </div>
         
@@ -165,4 +170,5 @@
     </section>
 
   </main><!-- End #main -->
+
 {% endblock %}

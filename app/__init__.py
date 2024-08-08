@@ -80,7 +80,15 @@ def create_app():
 
     from .ussd.routes import ussd as ussd_blueprint
     app.register_blueprint(ussd_blueprint, url_prefix='/ussd')
-    print("Passed ussd config")
+
+    from .products.routes import products_bp as products_blueprint
+    app.register_blueprint(products_blueprint, url_prefix='/products')
+
+    from .orders.routes import orders_bp as orders_blueprint
+    app.register_blueprint(orders_blueprint, url_prefix='/orders')
+
+    from .suppliers.routes import suppliers_bp as suppliers_blueprint
+    app.register_blueprint(suppliers_blueprint, url_prefix='/suppliers')
 
     with app.app_context():
         db.create_all()
