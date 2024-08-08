@@ -7,7 +7,7 @@ def process_ussd_input(session_id, service_code, phone_number, text):
     :Returns: response
     """
     response = ""
-    user = User.query.filter_by(telephone=phone_number).first()
+    user = User.query.filter_by(telephone=format_number(phone_number)).first()
 
     steps = text.split('*') if text else [""]
     last_step = steps[-1]
@@ -100,7 +100,7 @@ def process_ussd_input(session_id, service_code, phone_number, text):
 
     # Existing users menu
     else:
-        user = User.query.filter_by(telephone=phone_number).first()
+        user = User.query.filter_by(telephone=format_number(phone_number)).first()
 
         if text == "" or last_step == "99":
             response = main_menu()
@@ -150,8 +150,9 @@ def track_order_menu(user):
 
 
 def view_profile(user):
+    
     response = f"CON Name: {user.name} {user.lastname}\n"
-    response += f"Telephone: {user.telephone}\n"
+    response += f"Telephone: {format_number(user.telephone)}\n"
     response += f"Location: {user.location}\n"
     response += f"Gender: {user.gender}\n"
     response += f"DOB: {user.date_of_birth}\n"
@@ -159,7 +160,6 @@ def view_profile(user):
 
     response += "1. Edit Profile\n"
     response += "\n99. Home"
-
     return response
 
 
@@ -174,3 +174,14 @@ def edit_profile(user):
     response += "\n99. Home"
 
     return response
+
+
+def format_number(phone_number):
+    if phone_number.startswith("+254"):
+        tel_number = phone_number.replace("+254", "0")
+    elif phone_number.startswith("+256"):
+        tel_number = phone_number.replace("+256", "0")
+    else:
+        tel_number = phone_number
+
+    return tel_number
