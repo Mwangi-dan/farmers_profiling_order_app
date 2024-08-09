@@ -29,7 +29,7 @@ def signup():
             lastname=form.lastname.data,
             email=form.email.data,
             gender=form.gender.data,
-            telephone=form.telephone.data,
+            telephone=format_number(form.nationality.data, form.telephone.data),
             nationality=form.nationality.data,
             role=form.role.data,
             location=form.location.data,
@@ -60,7 +60,7 @@ def signup_farmer():
         farmer = Farmer(
             name=form.name.data,
             email=form.email.data,
-            telephone=form.telephone.data,
+            telephone=format_number(form.country.data, form.telephone.data),
             location=form.location.data,
             latitude=form.latitude.data,
             longitude=form.longitude.data,
@@ -90,7 +90,7 @@ def signup_supplier():
         supplier = Supplier(
             name=form.name.data,
             email=form.email.data,
-            telephone=form.telephone.data,
+            telephone=format_number(form.country.data, form.telephone.data),
             location=form.location.data,
             latitude=form.latitude.data,
             longitude=form.longitude.data,
@@ -143,3 +143,17 @@ def refresh():
     response = jsonify({'refresh': True})
     set_access_cookies(response, access_token)
     return response, 200
+
+
+
+def format_number(country, number):
+    if country == 'Kenya':
+        if number.startswith('0'):
+            number = '+254' + number[1:]
+    elif country == 'Uganda':
+        if number.startswith('0'):
+            number = '+256' + number[1:]
+    else:
+        number=number
+
+    return number

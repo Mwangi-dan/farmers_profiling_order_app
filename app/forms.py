@@ -60,6 +60,7 @@ class FarmerRegistrationForm(RegistrationForm):
     nin = StringField('National Identification Number', validators=[DataRequired(), Length(min=7, max=14)])
     group_name = StringField('Group Name')
     land_size = FloatField('Land Size (acres)')
+    country = StringField('Country', validators=[DataRequired()])
     crop = StringField('Crop Being Grown')
     last_yield = FloatField('Last Yield (tons)')
     bank_account = BooleanField('Bank Account')

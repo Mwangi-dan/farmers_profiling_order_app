@@ -187,7 +187,7 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     description = db.Column(db.String(200), nullable=True)
-    category = db.Column(db.String(100), nullable=False)
+    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     price = db.Column(db.Float, nullable=False)
     image_url = db.Column(db.String(200), nullable=True)
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'), nullable=True)
@@ -197,8 +197,23 @@ class Product(db.Model):
             'id': self.id,
             'name': self.name,
             'description': self.description,
-            'category': self.category,
+            'category': self.category.name if self.category else None,
             'price': self.price,
             'image_url': self.image_url,
             'supplier': self.supplier.to_dict() if self.supplier else None
+        }
+
+class Category(db.Model):
+    __tablename__ = 'category'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(200), nullable=True)
+    products = db.relationship('Product', backref='category', lazy=True)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description': self.description,
+            'products': [product.to_dict() for product in self.products]
         }

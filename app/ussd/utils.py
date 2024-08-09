@@ -7,7 +7,7 @@ def process_ussd_input(session_id, service_code, phone_number, text):
     :Returns: response
     """
     response = ""
-    user = User.query.filter_by(telephone=format_number(phone_number)).first()
+    user = User.query.filter_by(telephone=phone_number).first() or User.query.filter_by(telephone=format_number(phone_number)).first()
 
     steps = text.split('*') if text else [""]
     last_step = steps[-1]
@@ -126,7 +126,7 @@ def main_menu():
     return response
 
 
-def order_menu(user):
+def order_menu(user, steps):
     response = "CON Make Order\n"
     response += "1. View Products\n"
     response += "2. View Cart\n"

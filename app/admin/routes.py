@@ -568,7 +568,7 @@ def create_supplier():
             gender=gender,
             company_name=company_name,
             contact_person=contact_person,
-            telephone=telephone,
+            telephone=format_number(country, telephone),
             email=email,
             nationality=country,
             location=location,
@@ -580,7 +580,7 @@ def create_supplier():
             db.session.commit()
             flash('Supplier created successfully!', 'success-supplier')
     except Exception as e:
-        flash('Error creating supplier!', 'danger-supplier')
+        flash(f'Error creating supplier!\n {e}', 'danger-supplier')
         return redirect(url_for('admin.admin_suppliers'))
     
     return redirect(url_for('admin.admin_suppliers'))
@@ -621,3 +621,17 @@ def delete_supplier(id):
     db.session.commit()
     flash('Supplier deleted successfully!', 'success-supplier')
     return redirect(url_for('admin.admin_suppliers'))
+
+
+
+def format_number(country, number):
+    if country == 'Kenya':
+        if number.startswith('0'):
+            number = '+254' + number[1:]
+    elif country == 'Uganda':
+        if number.startswith('0'):
+            number = '+256' + number[1:]
+    else:
+        number=number
+
+    return number
