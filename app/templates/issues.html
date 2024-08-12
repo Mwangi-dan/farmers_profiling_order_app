@@ -15,31 +15,33 @@
 
     <div class="card">
         <div class="card-body">
-            <!-- Table with stripped rows -->
-            <table class="table datatable">
-                <thead>
-                <tr>
-                    <th><b>Name</b></th>
-                    <th>Status</th>
-                    <th>Telephone</th>
-                    <th>Location</th>
-                    <th data-type="date" data-format="YYYY/DD/MM">Date Created</th>
-                    <th>Date Updated</th>
-                </tr>
-                </thead>
-                <tbody>
-                {% for issue in issue %}
-                <tr>
-                    <td><a href="{{ url_for('admin.view_order', user_id=issue.id) }}">{{ issue.name }}</a></td>
-                    <td>{{ issue.status }}</td>
-                    <td>{{ issue.telephone }}</td>
-                    <td>{{ issue.location }}</td>
-                    <td>{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            <!-- End Table with stripped rows -->
+            <div class="table-responsive">
+                <!-- Table with stripped rows -->
+                <table class="table datatable">
+                    <thead>
+                    <tr>
+                        <th><b>Name</b></th>
+                        <th>Status</th>
+                        <th>Telephone</th>
+                        <th>Location</th>
+                        <th data-type="date" data-format="YYYY/DD/MM">Date Created</th>
+                        <th>Date Updated</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for issue in issue %}
+                    <tr>
+                        <td><a href="{{ url_for('admin.view_order', user_id=issue.id) }}">{{ issue.name }}</a></td>
+                        <td>{{ issue.status }}</td>
+                        <td>{{ issue.telephone }}</td>
+                        <td>{{ issue.location }}</td>
+                        <td>{{ issue.created_at.strftime('%Y-%m-%d') }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <!-- End Table with stripped rows -->
+            </div>
         </div>
     </div>
 

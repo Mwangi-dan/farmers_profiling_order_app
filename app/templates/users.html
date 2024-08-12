@@ -22,38 +22,38 @@
       <!-- Active Filters -->
       <div id="active-filters" class="mb-3"></div>
 
-      <!-- Table with stripped rows -->
-      <table class="table datatable" id="users-table">
-        <thead>
-          <tr>
-            <th><b>Name</b></th>
-            <th>Role</th>
-            <th>Gender</th>
-            <th>Telephone</th>
-            <th>Location</th>
-            <th data-type="date" data-format="YYYY/DD/MM">Joined</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users %}
-          <tr>
-            <td><a href="{{ url_for('admin.view_user', user_id=user.id) }}">{{ user.name }}</a></td>
-            <td>{{ user.role.capitalize() }}</td>
-            <td>{{ user.gender }}</td>
-            <td>{{ user.telephone }}</td>
-            <td>{{ user.location }}</td>
-            <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
-            <td>
-              <a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="btn btn-primary mb-3">Edit User</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <!-- End Table with stripped rows -->
-
-    </div>
+      <div class="table-responsive">
+        <!-- Table with stripped rows -->
+        <table class="table datatable" id="users-table">
+          <thead>
+            <tr>
+              <th><b>Name</b></th>
+              <th>Role</th>
+              <th>Gender</th>
+              <th>Telephone</th>
+              <th>Location</th>
+              <th data-type="date" data-format="YYYY/DD/MM">Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td><a href="{{ url_for('admin.view_user', user_id=user.id) }}">{{ user.name }}</a></td>
+              <td>{{ user.role.capitalize() }}</td>
+              <td>{{ user.gender }}</td>
+              <td>{{ user.telephone }}</td>
+              <td>{{ user.location }}</td>
+              <td>{{ user.created_at.strftime('%Y-%m-%d') }}</td>
+              <td>
+                <a href="{{ url_for('admin.view_user', user_id=user.id) }}" class="btn btn-primary mb-3">Edit User</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        <!-- End Table with stripped rows -->
+      </div>
   </div>
 
   <!-- Filter Modal -->

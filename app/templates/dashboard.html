@@ -174,34 +174,36 @@
                 <div class="card-body">
                   <h5 class="card-title"><a href="{{ url_for('admin.get_orders') }}">Recent Orders </a><span>| Today</span></h5>
 
-                  <table class="table table-borderless datatable">
-                    <thead>
-                      <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Customer</th>
-                        <th scope="col">Product</th>
-                        <th scope="col">Price</th>
-                        <th scope="col">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {%  for order in orders %}
-                      <tr>
-                        <th scope="row"><a href="#">{{  order.id }}</a></th>
-                        <td>{{ order.user }}</td>
-                        <td><a href="#" class="text-primary">{{  order.product_name }}</a></td>
-                        <td>{{ order.price }}</td>
-                        {% if order.status == 'Pending' %}
-                        <td><span class="badge bg-warning">{{ order.status }}</span></td>
-                        {% elif order.status == 'Approved' %}
-                        <td><span class="badge bg-success">{{ order.status }}</span></td>
-                        {% else %}
-                        <td><span class="badge bg-danger">{{ order.status }}</span></td>
-                        {% endif %}
-                      </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
+                  <div class="table-responsive">
+                    <table class="table table-borderless datatable">
+                      <thead>
+                        <tr>
+                          <th scope="col">#</th>
+                          <th scope="col">Customer</th>
+                          <th scope="col">Product</th>
+                          <th scope="col">Price</th>
+                          <th scope="col">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {%  for order in orders %}
+                        <tr>
+                          <th scope="row"><a href="#">{{  order.id }}</a></th>
+                          <td>{{ order.user }}</td>
+                          <td><a href="#" class="text-primary">{{  order.product_name }}</a></td>
+                          <td>{{ order.price }}</td>
+                          {% if order.status == 'Pending' %}
+                          <td><span class="badge bg-warning">{{ order.status }}</span></td>
+                          {% elif order.status == 'Approved' %}
+                          <td><span class="badge bg-success">{{ order.status }}</span></td>
+                          {% else %}
+                          <td><span class="badge bg-danger">{{ order.status }}</span></td>
+                          {% endif %}
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
 
                 </div>
 
