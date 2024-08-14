@@ -146,6 +146,31 @@ def refresh():
 
 
 
+@auth.route('/api/login', methods=['POST'])
+def api_login():
+    data = request.get_json()
+    user = User.query.filter_by(telephone=data.get('telephone')).first()
+
+    if user and check_password_hash(user.password_hash, data.get('password')):
+        access_token = create_access_token(identity={'telephone': user.telephone, 'role': user.role})
+        refresh_token = create_refresh_token(identity={'telephone': user.telephone, 'role': user.role})
+
+        return jsonify({
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "user": {
+                "name": user.name,
+                "email": user.email,
+                "telephone": user.telephone,
+                "role": user.role
+            }
+        }), 200
+    else:
+        return jsonify({"message": "Invalid phone number or password"}), 401
+
+
+
+
 def format_number(country, number):
     if country == 'Kenya':
         if number.startswith('0'):
