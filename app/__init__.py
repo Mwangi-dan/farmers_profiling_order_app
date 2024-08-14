@@ -22,7 +22,7 @@ def create_app():
     app.config.from_object('config.Config')
     app.config['GOOGLE_MAPS_API_KEY'] = os.getenv('GOOGLE_MAPS_API_KEY')
     app.config['UPLOADED_PHOTOS_DEST'] = os.path.join(os.getcwd(), 'app/static/images/uploads')
-
+    
 
     photos = UploadSet('photos', IMAGES)
     configure_uploads(app, photos)
@@ -94,8 +94,3 @@ def create_app():
         db.create_all()
 
     return app
-
-
-if __name__ == '__main__':
-    app = create_app()
-    app.run(port=5000)

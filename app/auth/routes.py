@@ -9,13 +9,15 @@ from werkzeug.utils import secure_filename
 from app import db
 from app.models import User, Farmer, Supplier, Admin
 from flask import current_app
-from flask_wtf.csrf import CSRFError
 from app.forms import (
     RegistrationForm, LoginForm, 
     FarmerRegistrationForm, SupplierRegistrationForm
     )
 
+
 auth = Blueprint('auth', __name__)
+
+from app import csrf
 
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
@@ -145,10 +147,16 @@ def refresh():
     return response, 200
 
 
-
+@csrf.exempt
+@jwt_required()
 @auth.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json()
+    print(f"Received data: {data}")
+
+    if not data or 'telephone' not in data or 'password' not in data:
+        return jsonify({"message": "Missing telephone or password"}), 400
+
     user = User.query.filter_by(telephone=data.get('telephone')).first()
 
     if user and check_password_hash(user.password_hash, data.get('password')):
@@ -167,6 +175,45 @@ def api_login():
         }), 200
     else:
         return jsonify({"message": "Invalid phone number or password"}), 401
+    
+
+@csrf.exempt
+@jwt_required()
+@auth.route('api/signup', methods=['POST'])
+def api_signup():
+    data = request.get_json()
+    print(f"Received data: {data}")
+
+    if not data or 'telephone' not in data or 'password' not in data or 'email' not in data:
+        return jsonify({"message": "Missing required fields"}), 400
+
+    # Check if the user already exists
+    if User.query.filter_by(telephone=data['telephone']).first():
+        return jsonify({"message": "User with this telephone number already exists"}), 400
+    if User.query.filter_by(email=data['email']).first():
+        return jsonify({"message": "User with this email already exists"}), 400
+    
+
+    hashed_password = generate_password_hash(data['password'])
+    new_user = Farmer(
+        telephone=format_number(data['country'], data['telephone']),
+        nin = data['nin'],
+        email=data['email'],
+        gender = data['gender'],
+        name=data['name'],
+        nationality=data['country'],
+        location=data['location'],
+        lastname=data['lastname'],
+        password_hash=hashed_password,
+    )
+    print(new_user.telephone)
+    print(data['telephone'], data['country'])
+
+    print(format_number(data['country'], data['telephone']))
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({"message": "User registered successfully!"}), 201
 
 
 
