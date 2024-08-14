@@ -13,7 +13,7 @@ class Config:
     JWT_TOKEN_LOCATION = ['cookies']
     JWT_ACCESS_COOKIE_PATH = '/'
     JWT_REFRESH_COOKIE_PATH = '/auth/token/refresh'
-    JWT_COOKIE_SECURE = False  # Should be True in production with HTTPS
+    JWT_COOKIE_SECURE = True  # Should be True in production with HTTPS
     WTF_CSRF_ENABLED = True
     WTF_CSRF_SECRET_KEY = 'your_csrf_secret_key'
     SESSION_COOKIE_DOMAIN = False
