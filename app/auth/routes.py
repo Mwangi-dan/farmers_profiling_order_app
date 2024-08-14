@@ -152,7 +152,6 @@ def refresh():
 @auth.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json()
-    print(f"Received data: {data}")
 
     if not data or 'telephone' not in data or 'password' not in data:
         return jsonify({"message": "Missing telephone or password"}), 400
@@ -182,7 +181,6 @@ def api_login():
 @auth.route('api/signup', methods=['POST'])
 def api_signup():
     data = request.get_json()
-    print(f"Received data: {data}")
 
     if not data or 'telephone' not in data or 'password' not in data or 'email' not in data:
         return jsonify({"message": "Missing required fields"}), 400
@@ -206,10 +204,6 @@ def api_signup():
         lastname=data['lastname'],
         password_hash=hashed_password,
     )
-    print(new_user.telephone)
-    print(data['telephone'], data['country'])
-
-    print(format_number(data['country'], data['telephone']))
     db.session.add(new_user)
     db.session.commit()
 
