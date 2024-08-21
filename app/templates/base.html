@@ -5,12 +5,12 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>Dashboard - ShambaBora App</title>
+  <title>{% block title %}ShambaBora{% endblock %}</title>
   <meta content="" name="description">
   <meta content="" name="keywords">
 
   <!-- Favicons -->
-  <link href="{{ url_for('static', filename='img/favicon.png') }}" rel="icon">
+  <link href="{{ url_for('static', filename='img/favicon.ico') }}" rel="icon">
   <link href="{{ url_for('static', filename='img/apple-touch-icon.png') }}" rel="apple-touch-icon">
 
   <!-- Google Fonts -->
@@ -29,13 +29,6 @@
   <!-- Template Main CSS File -->
   <link href="{{ url_for('static', filename='css/style.css')}}" rel="stylesheet">
 
-  <!-- =======================================================
-  * Template Name: NiceAdmin
-  * Template URL: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/
-  * Updated: Apr 20 2024 with Bootstrap v5.3.3
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
 </head>
 
 <body>
@@ -45,6 +38,9 @@
 
     <div class="d-flex align-items-center justify-content-between">
       <a href="{{ url_for('admin.dashboard' )}}" class="logo d-flex align-items-center">
+        <span class="d-none d-lg-block">
+          <img src="{{ url_for('static', filename='img/title_image.png') }}" alt="Logo" class="img-fluid">
+        </span>
         <span class="d-none d-lg-block">ShambaBora</span>
       </a>
       <i class="bi bi-list toggle-sidebar-btn"></i>
@@ -146,6 +142,14 @@
         <a class="nav-link {% if not active_endpoint == 'admin.get_users' %}collapsed{% endif %}" href="{{ url_for('admin.get_users') }}">
           <i class="bi bi-person"></i>
           <span>Users</span>
+        </a>
+      </li><!-- End User Page Nav -->
+
+
+      <li class="nav-item">
+        <a class="nav-link {% if not active_endpoint == 'admin.admin_products' %}collapsed{% endif %}" href="{{ url_for('admin.admin_products') }}">
+          <i class="bi bi-cart"></i>
+          <span>Products</span>
         </a>
       </li><!-- End User Page Nav -->
 

@@ -18,7 +18,7 @@ class Config:
     WTF_CSRF_SECRET_KEY = 'your_csrf_secret_key'
     SESSION_COOKIE_DOMAIN = False
     DEBUG = True  
-    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_COOKIE_CSRF_PROTECT = False
     BASE_DIR = os.path.abspath(os.path.dirname(__file__))
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'images', 'uploads')
     PRODUCT_UPLOAD_FOLDER = os.path.join(BASE_DIR, 'app', 'static', 'images', 'product_uploads')

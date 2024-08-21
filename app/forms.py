@@ -5,7 +5,7 @@ from wtforms import (
     )
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, Optional
 from flask_wtf.file import FileAllowed
-from app.models import User
+from app.models import User, Category, Supplier
 
 class RegistrationForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(min=2, max=50)])
@@ -43,11 +43,10 @@ class EditProfileForm(FlaskForm):
     gender = SelectField('Gender', choices=[('Male', 'Male'), ('Female', 'Female')], validators=[Optional()])
     telephone = StringField('Telephone', validators=[Optional()])
     location = StringField('Location', validators=[Optional()])
-    latitude = StringField('Latitude', validators=[Optional()])
-    longitude = StringField('Longitude', validators=[Optional()])
     date_of_birth = DateField('Date of Birth', validators=[Optional()])
     photo = FileField('Profile Image', validators=[Optional(), FileAllowed(['jpg', 'png'], 'Images only!')])
     submit = SubmitField('Save Changes')
+
 
 class ReportGenerationForm(FlaskForm):
     report_type = SelectField('Report Type', choices=[('users', 'Users'), ('orders', 'Orders'), ('issues', 'Issues')], validators=[DataRequired()])
@@ -91,3 +90,34 @@ class ChangePasswordForm(FlaskForm):
         EqualTo('new_password', message='Passwords must match')
     ])
     submit = SubmitField('Change Password')
+
+
+class NewProductForm(FlaskForm):
+    name = StringField('Product Name', validators=[DataRequired()])
+    description = StringField('Description', validators=[Optional()])
+    price = FloatField('Price', validators=[DataRequired()])
+    category = StringField('Category', validators=[Optional()])
+    currency = SelectField('Currency', choices=[
+        ('', 'Select currency of Prices'),
+        ('KES', 'KES'), 
+        ('UGX', 'UGX'), 
+        ('USD', 'USD')], 
+        validators=[DataRequired()],
+        default=''
+        )
+    # category = SelectField('Category', validators=[Optional()], coerce=int)
+    # new_category = StringField('Or Enter New Category', validators=[Optional()])  # New category field
+    quantity = FloatField('Quantity (Tonnes)', validators=[DataRequired()])
+    image = FileField('Product Image', validators=[Optional(), FileAllowed(['jpg', 'png', 'jpeg'], 'Images only!')])
+    supplier = SelectField('Supplier', validators=[Optional()], coerce=int)
+    new_supplier = StringField('Or Enter New Supplier', validators=[Optional()])  # New supplier field
+    featured = BooleanField('Featured Product', validators=[Optional()])
+    submit = SubmitField('Add Product')
+
+    def __init__(self, *args, **kwargs):
+        super(NewProductForm, self).__init__(*args, **kwargs)
+        self.supplier.choices = [(-1, 'Select Supplier (Required)')] + [(s.id, s.name) for s in Supplier.query.all()]
+
+    def validate_supplier(form, field):
+        if field.data == -1:
+            raise ValidationError('Please select a valid supplier.')

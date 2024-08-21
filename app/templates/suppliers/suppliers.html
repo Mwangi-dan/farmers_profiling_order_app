@@ -1,5 +1,6 @@
 {% extends 'base.html'%}
 
+{% block title %}Suppliers - ShambaBora{% endblock %}
 
 {% block content %}
 <main id="main" class="main">
@@ -58,7 +59,7 @@
                               <form method="POST" action="{{ url_for('admin.delete_supplier', id=supplier.id) }}" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                   <input type="hidden" name="csrf_token" value="{{csrf_token()}}">
                                   <div class="text-center">
-                                      <button type="submit" class="btn btn-danger">Delete User</button>
+                                      <button type="submit" class="btn btn-danger">Delete Supplier</button>
                                   </form><!-- End Deletion Form -->
                                   </div>
                               </td>

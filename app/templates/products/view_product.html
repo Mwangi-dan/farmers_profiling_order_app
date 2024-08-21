@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>{% if product.featured %}<div class="featured-badge"><span>Featured</span></div>{% endif %}</h1>
+    </div><!-- End Page Title -->
+    <div class="pagetitle">
+        <h1>View Product</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_products') }}">Products</a></li>
+                <li class="breadcrumb-item active">{{ product.name }}</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="container mt-4">
+          {% for category, message in messages %}
+            {% if 'success' in category %}
+              <div class="alert alert-{{ category.split('-')[0] }} alert-dismissible fade show profile-flash" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+
+    <div class="card">
+        <div class="card-body">
+            
+            <h5 class="card-title">{{ product.name }}</h5>
+            <p class="card-text">{{ product.description }}</p>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="product-image-container">
+                        <img src="{{ url_for('static', filename='images/product_uploads/' ~ product.image_url) }}" alt="{{ product.name }}" class="product-image">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <h6>Product Details</h6>
+                    <ul class="list-group">
+                        <li class="list-group-item"><strong>Category:</strong> {{ product.category }}</li>
+                        <li class="list-group-item"><strong>Price:</strong> {{ price }}</li>
+                        <li class="list-group-item"><strong>Quantity (Tonnes):</strong> {{ product.quantity }}</li>
+                        <li class="list-group-item"><strong>Supplier:</strong> {{ product.supplier.name }}</li>
+                    </ul>
+
+                    <a href="{{ url_for('admin.edit_product', id=product.id) }}" class="btn btn-primary mt-3">Edit Product</a>
+                    {% if product.featured %}
+                        <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#featureModal{{ product.id }}">Unfeature</button>
+                    {% else %}
+                        <button class="btn btn-warning mt-3" data-bs-toggle="modal" data-bs-target="#featureModal{{ product.id }}">Feature</button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{{ url_for('admin.admin_products') }}" class="btn btn-secondary">Back to Products</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal fade" id="featureModal{{ product.id }}" tabindex="-1" aria-labelledby="featureModalLabel{{ product.id }}" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="featureModalLabel{{ product.id }}">
+                        {% if product.featured %}
+                            Unfeature Product: {{ product.name }}
+                        {% else %}
+                            Feature Product: {{ product.name }}
+                        {% endif %}
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <img src="{{ url_for('static', filename='images/product_uploads/' ~ product.image_url) }}" 
+                                alt="{{ product.name }}" 
+                                class="img-fluid rounded shadow-sm" 
+                                style="max-height: 200px; object-fit: cover;">
+                    </div>
+                    {% if product.featured %}
+                        <p>Are you sure you want to unfeature this product?</p>
+                    {% else %}
+                        <p>Are you sure you want to feature this product?</p>
+                    {% endif %}
+            
+                    <ul>
+                        <li><strong>Name:</strong> {{ product.name }}</li>
+                        <li><strong>Category:</strong> {{ product.category }}</li>
+                        <li><strong>Price:</strong> ${{ product.price }}</li>
+                        <li><strong>Stock:</strong> {{ product.quantity }}</li>
+                        <li><strong>Supplier:</strong> {{ product.supplier.name }}</li>
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    {% if product.featured %}
+                        <a href="{{ url_for('admin.product_page_toggle', id=product.id, action='unfeature') }}" class="btn btn-danger">Yes, Unfeature</a>
+                    {% else %}
+                        <a href="{{ url_for('admin.product_page_toggle', id=product.id, action='feature') }}" class="btn btn-success">Yes, Feature</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+</main>
+{% if product.featured %}
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+    window.addEventListener('load', function() {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}

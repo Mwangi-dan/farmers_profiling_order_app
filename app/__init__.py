@@ -90,6 +90,9 @@ def create_app():
     from .suppliers.routes import suppliers_bp as suppliers_blueprint
     app.register_blueprint(suppliers_blueprint, url_prefix='/suppliers')
 
+    from .mobile_app.routes import mobile_app_bp as mobile_app_blueprint
+    app.register_blueprint(mobile_app_blueprint, url_prefix='/mobile_app')
+
     with app.app_context():
         db.create_all()
 

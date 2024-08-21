@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product {{ product.name }}{% endblock %}
+
+{% block content %}
+<main id="main" class="main">
+    <div class="pagetitle">
+        <h1>Edit Product</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="{{ url_for('admin.dashboard') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('admin.admin_products') }}">Products</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('admin.view_product', id=product.id) }}">{{ product.name }}</a></li>
+                <li class="breadcrumb-item active">Edit {{ product.name }}</li>
+            </ol>
+        </nav>
+    </div><!-- End Page Title -->
+
+    <div class="card">
+        <div class="card-body">
+            <h5 class="card-title">Edit Product - {{ product.name }}</h5>
+
+            <form method="POST" action="{{ url_for('admin.edit_product', id=product.id) }}" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+
+                <div class="mb-3">
+                    <label for="productImage" class="form-label">Current Product Image</label>
+                    <div class="mb-3">
+                        {% if product.image_url %}
+                            <img src="{{ url_for('static', filename='images/product_uploads/' ~ product.image_url) }}" alt="Product Image" class="img-thumbnail" width="150">
+                        {% endif %}
+                    </div>
+                    {{ form.image.label(class="form-label") }}
+                    {{ form.image(class="form-control") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.name.label(class="form-label") }}
+                    {{ form.name(class="form-control") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.description.label(class="form-label") }}
+                    {{ form.description(class="form-control") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.category.label(class="form-label") }}
+                    {{ form.category(class="form-control") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.price.label(class="form-label") }}
+                    {{ form.price(class="form-control") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.currency.label(class="form-label") }}
+                    {{ form.currency(class="form-control") }}
+                </div>
+
+                <div class="mb-3">
+                    {{ form.quantity.label(class="form-label") }}
+                    {{ form.quantity(class="form-control") }}
+                </div>
+
+
+                <div class="mb-3">
+                    {{ form.featured.label(class="form-label") }}
+                    <select name="{{ form.featured.name }}" id="{{ form.featured.name }}" class="form-control">
+                        <option value="" disabled>Select Featured</option>
+                        <option value="True" {% if form.featured.data == True %}selected{% endif %}>True</option>
+                        <option value="False" {% if form.featured.data == False %}selected{% endif %}>False</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.supplier.label(class="form-label") }}
+                    <select name="{{ form.supplier.name }}" id="{{ form.supplier.id }}" class="form-control">
+                        <option value="" disabled>Select Supplier</option>
+                        <option value="{{ supplier.id }}" default>{{ supplier.name }}</option>
+                        {% for value, label in form.supplier.choices %}
+                            <option value="{{ value }}"  {% if form.supplier.data == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.submit(class="btn btn-primary w-100") }}
+                </div>
+            </form>
+
+            <div class="mt-4">
+                <a href="{{ url_for('admin.view_product', id=product.id) }}" class="btn btn-secondary">Cancel</a>
+            </div>
+        </div>
+    </div>
+</main>
+{% endblock %}

@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}Dashboard - ShambaBora{% endblock %}
+
 {% block content %}
 <main id="main" class="main">
 
@@ -204,11 +206,35 @@
                       </tbody>
                     </table>
                   </div>
-
                 </div>
 
-                
+                <!-- Products -->
+                <div class="card-body">
+                  <h5 class="card-title"><a href="{{ url_for('admin.get_orders') }}">Recent Orders </a><span>| Today</span></h5>
 
+                  <div class="table-responsive">
+                    <table class="table table-borderless datatable">
+                      <thead>
+                        <tr>
+                          <th scope="col">Name</th>
+                          <th scope="col">Category</th>
+                          <th scope="col">Price</th>
+                          <th scope="col">Supplier</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {%  for product in products %}
+                        <tr>
+                          <td><a href="{{ url_for('admin.view_product', id=product.id) }}">{{ product.name }}</a></td>
+                          <td>{{ product.category }}</td>
+                          <td>{{ product.price }}</td>
+                          <td>{{ product.supplier.name }}</td>
+                        </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div><!-- End Recent Sales -->
           </div>

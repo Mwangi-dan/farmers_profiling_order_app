@@ -187,20 +187,30 @@ class Product(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150), nullable=False)
     description = db.Column(db.String(200), nullable=True)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
+    category = db.Column(db.String, nullable=True)
     price = db.Column(db.Float, nullable=False)
+    currency = db.Column(db.String(10), default='KES')
     image_url = db.Column(db.String(200), nullable=True)
     supplier_id = db.Column(db.Integer, db.ForeignKey('suppliers.id'), nullable=True)
+    quantity = db.Column(db.Integer, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    updated_at = db.Column(db.DateTime, default=datetime.now(timezone.utc), onupdate=datetime.now(timezone.utc))
+    featured = db.Column(db.Boolean, default=False)
+
 
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
             'description': self.description,
+            'quantity': self.quantity,
             'category': self.category.name if self.category else None,
             'price': self.price,
             'image_url': self.image_url,
-            'supplier': self.supplier.to_dict() if self.supplier else None
+            'supplier': self.supplier.to_dict() if self.supplier else None,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat(),
+            'featured': self.featured
         }
 
 class Category(db.Model):
@@ -208,12 +218,12 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(200), nullable=True)
-    products = db.relationship('Product', backref='category', lazy=True)
+    # products = db.relationship('Product', backref='category', lazy=True)
 
     def to_dict(self):
         return {
             'id': self.id,
             'name': self.name,
             'description': self.description,
-            'products': [product.to_dict() for product in self.products]
+            # 'products': [product.to_dict() for product in self.products]
         }

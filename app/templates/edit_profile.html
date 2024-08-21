@@ -20,7 +20,7 @@
                     <select name="{{ form.gender.name }}" id="{{ form.gender.id }}" class="form-control">
                         <option value="" disabled selected>Select Gender</option>
                         {% for value, label in form.gender.choices %}
-                            <option value="{{ value }}" {% if form.gender.data == value %}selected{% endif %}>{{ label }}</option>
+                            <option value="{{ value }}"  {% if form.gender.data == value %}selected{% endif %}>{{ label }}</option>
                         {% endfor %}
                     </select>
                 </div>

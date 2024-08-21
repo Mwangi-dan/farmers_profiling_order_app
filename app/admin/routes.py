@@ -6,7 +6,7 @@ from flask_jwt_extended import (
 )
 from flask_wtf.csrf import CSRFProtect
 from werkzeug.security import check_password_hash, generate_password_hash
-from app.models import User, Issue, Order, Admin, Farmer, Supplier, Product
+from app.models import User, Issue, Order, Admin, Farmer, Supplier, Product, Category
 import csv
 from io import StringIO, BytesIO
 from app import db
@@ -15,7 +15,7 @@ from reportlab.pdfgen import canvas
 from config import ISSUE_STATUS, ORDER_STATUS, allowed_file
 from app.forms import (
     LoginForm, EditProfileForm, ReportGenerationForm,
-    EditUserForm ,ChangePasswordForm
+    EditUserForm ,ChangePasswordForm, NewProductForm
     )
 from datetime import datetime, timedelta
 from flask_uploads import UploadSet, IMAGES
@@ -49,6 +49,7 @@ def dashboard():
     users = User.query.all()
     issues = Issue.query.all()
     orders = Order.query.all()
+    products = Product.query.all()
 
     # Calculate the start of today and the start of this week
     today = datetime.utcnow().date()
@@ -60,6 +61,9 @@ def dashboard():
     # Query for this week's orders
     orders_this_week = Order.query.filter(Order.created_at >= start_of_week).count()
 
+    # Recent products listed
+    recent_products = Product.query.order_by(Product.created_at.desc()).limit(5).all()
+
     return render_template(
         'dashboard.html',
         current_user=current_user,
@@ -69,7 +73,8 @@ def dashboard():
         orders=orders,
         issue_count=len(issues),
         orders_today=orders_today,
-        orders_this_week=orders_this_week
+        orders_this_week=orders_this_week,
+        products=recent_products
         )
 
 
@@ -222,18 +227,19 @@ def allowed_file(filename):
 @jwt_required()
 def edit_profile(user_id):
     current_user_identity = get_jwt_identity()
-    current_user = User.query.filter_by(telephone=current_user_identity['telephone']).first()
-
     user = User.query.get_or_404(user_id)
     form = EditProfileForm(obj=user)
     
     if form.validate_on_submit():
         user.name = form.name.data
+        user.lastname = form.lastname.data
         user.email = form.email.data
         user.gender = form.gender.data
         user.telephone = form.telephone.data
         user.location = form.location.data
         user.date_of_birth = form.date_of_birth.data
+        db.session.commit()
+        flash('Profile updated successfully!', 'success-profile')
         
         if 'photo' in request.files:
             photo = request.files['photo']
@@ -249,17 +255,21 @@ def edit_profile(user_id):
 
                 photo.save(filepath)
                 user.photo = filename  # Save the filename to the database
+                db.session.commit()
             else:
                 flash('File type not allowed. Allowed types are png, jpg, jpeg', 'danger')
-                return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user))
+                return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user()))
+            
+            return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user()))
+    
         else:
             flash('No file uploaded or file size exceeds limit.', 'danger')
-            return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user))
+            return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user()))
         
-        db.session.commit()
-        flash('Profile updated successfully!', 'success-profile')
-        return redirect(url_for('admin.profile', user_id=user.id, current_user=current_user))
-    
+ 
+        
+    else:
+        print(form.errors)
     return render_template('profile.html', form=form, user=user, current_user=user)
 
 
@@ -635,3 +645,175 @@ def format_number(country, number):
         number=number
 
     return number
+
+
+
+################# PRODUCTS ####################
+@admin.route('/products', methods=['GET'])
+@jwt_required()
+def admin_products():
+    products = Product.query.all()
+    return render_template('products/products.html', products=products, current_user=current_user())
+
+
+@admin.route('/products/<int:id>', methods=['GET'])
+@jwt_required()
+def view_product(id):
+    product = Product.query.get_or_404(id)
+    user = current_user()
+    nationality = user.nationality
+    return render_template('products/view_product.html', product=product, current_user=current_user(), price=currency_conversion(nationality, product.price, product))
+
+
+
+@jwt_required()
+@admin.route('/new_product', methods=['GET', 'POST'])
+def new_product():
+    form = NewProductForm()
+    if form.validate_on_submit():
+        # Check if a new supplier was entered
+        if form.new_supplier.data:
+            supplier = Supplier(name=form.new_supplier.data)
+            db.session.add(supplier)
+            db.session.commit()
+        else:
+            supplier = Supplier.query.get(form.supplier.data)
+
+        # Create the new product
+        new_product = Product(
+            name=form.name.data,
+            description=form.description.data,
+            price=form.price.data,
+            quantity=form.quantity.data,
+            image_url=form.image.data.filename if form.image.data else None,
+            # category_id=category.id,
+            supplier_id=supplier.id
+        )
+
+        # Save the product image if uploaded
+        if form.image.data:
+            photo = request.files['image']
+            if photo and allowed_file(photo.filename):
+                filename = secure_filename(photo.filename)
+                upload_folder = current_app.config['PRODUCT_UPLOAD_FOLDER']
+                filepath = os.path.join(upload_folder, filename)
+                photo.save(filepath)
+                new_product.image_url = filename
+
+        db.session.add(new_product)
+        db.session.commit()
+
+        flash('Product added successfully!', 'success')
+        return redirect(url_for('admin.admin_products'))
+    else:
+        print(form.errors)
+    return render_template('products/create_product.html', form=form, current_user=current_user())
+
+
+@admin.route('/products/edit/<int:id>', methods=['GET', 'POST'])
+@jwt_required()
+def edit_product(id):
+    product = Product.query.get_or_404(id)
+    sup = Supplier.query.get(product.supplier_id)
+    form = NewProductForm(obj=product)
+
+    form.submit.label.text = "Edit Product"
+
+    if form.validate_on_submit():
+        # Check if a new supplier was entered
+        if form.new_supplier.data:
+            supplier = Supplier(name=form.new_supplier.data)
+            db.session.add(supplier)
+            db.session.commit()
+        else:
+            supplier = Supplier.query.get(form.supplier.data)
+
+        product.name = form.name.data
+        product.description = form.description.data
+        product.price = form.price.data
+        product.quantity = form.quantity.data
+        product.image_url = form.image.data.filename if form.image.data else product.image_url
+        product.category = form.category.data
+        product.supplier = supplier
+        product.featured = form.featured.data
+        product.currency = form.currency.data
+
+        # Save the product image if uploaded
+        if form.image.data:
+            photo = request.files['image']
+            if photo and allowed_file(photo.filename):
+                filename = secure_filename(photo.filename)
+                upload_folder = current_app.config['PRODUCT_UPLOAD_FOLDER']
+                filepath = os.path.join(upload_folder, filename)
+
+                if product.image_url and product.image_url != 'default.jpg':
+                    old_photo_path = os.path.join(upload_folder, product.image_url)
+                    if os.path.exists(old_photo_path):
+                        os.remove(old_photo_path)
+
+                photo.save(filepath)
+                product.image_url = filename
+            
+        db.session.commit()
+        flash('Product updated successfully!', 'success')
+        return redirect(url_for('admin.view_product', id=product.id))
+    else:
+        flash('Error updating product.', 'danger')
+    return render_template('products/edit_product.html', form=form, product=product, current_user=current_user(), supplier=sup)
+
+
+@admin.route('/products/delete/<int:id>', methods=['POST'])
+@jwt_required()
+def delete_product(id):
+    product = Product.query.get_or_404(id)
+    db.session.delete(product)
+    db.session.commit()
+    flash('Product deleted successfully!', 'success')
+    return redirect(url_for('admin.admin_products'))
+
+
+@admin.route('/toggle_feature/<int:id>/<string:action>', methods=['GET', 'POST'])
+@jwt_required()
+def toggle_feature(id, action):
+    product = Product.query.get_or_404(id)
+    
+    if action == 'feature':
+        product.featured = True
+        flash('Product has been featured!', 'success')
+    elif action == 'unfeature':
+        product.featured = False
+        flash('Product has been unfeatured!', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('admin.admin_products'))
+
+
+@admin.route('/toggle_feature/product/<int:id>/<string:action>', methods=['GET', 'POST'])
+@jwt_required()
+def product_page_toggle(id, action):
+    product = Product.query.get_or_404(id)
+    
+    if action == 'feature':
+        product.featured = True
+        flash('Product has been featured!', 'success')
+    elif action == 'unfeature':
+        product.featured = False
+        flash('Product has been unfeatured!', 'success')
+    
+    db.session.commit()
+    return redirect(url_for('admin.view_product', id=product.id))
+
+
+
+
+def currency_conversion(nationality, price, product):
+    if 'kenya' in nationality.lower():
+        if product.currency == 'KES':
+            return f'KES {price}'
+    elif 'uganda' in nationality.lower():
+        if product.currency == 'KES':
+            nprice = price * 28.84
+            return f'UGX {nprice}'
+    else:
+        return price
+            
