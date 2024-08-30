@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_marshmallow import Marshmallow
+from flask import url_for
 
 db = SQLAlchemy()
 ma = Marshmallow()
@@ -178,7 +179,7 @@ class Supplier(User):
             'id': self.id,
             'name': self.name,
             'photo': self.photo,
-            'products': [product.to_dict() for product in self.products]
+            # 'products': [product.to_dict() for product in self.products]
         }
 
 
@@ -204,13 +205,14 @@ class Product(db.Model):
             'name': self.name,
             'description': self.description,
             'quantity': self.quantity,
-            'category': self.category.name if self.category else None,
+            'category': self.category if self.category else None,
             'price': self.price,
-            'image_url': self.image_url,
+            'image_url': url_for('static', filename='images/product_uploads/' + self.image_url, _external=True),
             'supplier': self.supplier.to_dict() if self.supplier else None,
-            'created_at': self.created_at.isoformat(),
+            'created_at': self.created_at.isoformat() if self.created_at else None,
             'updated_at': self.updated_at.isoformat(),
-            'featured': self.featured
+            'featured': self.featured,
+            'currency': self.currency,
         }
 
 class Category(db.Model):

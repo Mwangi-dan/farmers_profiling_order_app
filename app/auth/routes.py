@@ -158,7 +158,7 @@ def api_login():
 
     user = User.query.filter_by(telephone=data.get('telephone')).first()
 
-    if user and check_password_hash(user.password_hash, data.get('password')):
+    if user and check_password_hash(user.password_hash, data.get('password')) and user.role == 'farmer':
         access_token = create_access_token(identity={'telephone': user.telephone, 'role': user.role})
         refresh_token = create_refresh_token(identity={'telephone': user.telephone, 'role': user.role})
 
