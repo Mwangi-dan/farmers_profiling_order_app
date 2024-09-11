@@ -10,11 +10,11 @@
                 {{ form.hidden_tag() }}
                 <div class="mb-3">
                     {{ form.telephone.label(class="form-label") }}
-                    {{ form.telephone(class="form-control", placeholder="+254... or +256...") }}
+                    {{ form.telephone(class="form-control", placeholder="Try '0712345678' or Register") }}
                 </div>
                 <div class="mb-3">
                     {{ form.password.label(class="form-label") }}
-                    {{ form.password(class="form-control") }}
+                    {{ form.password(class="form-control", placeholder="mypass123") }}
                 </div>
                 <div class="mb-3 form-check">
                     {{ form.remember(class="form-check-input") }}
